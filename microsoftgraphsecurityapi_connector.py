@@ -825,13 +825,13 @@ class MicrosoftTeamConnector(BaseConnector):
                 if '$top' in params:
                     if params['$top'] and len(list_items) >= max_alerts_user:
                         break
-                    del(params['$top'])
+                    del params['$top']
 
                 if '$search' in params:
-                    del(params['$search'])
+                    del params['$search']
 
                 if '$filter' in params:
-                    del(params['$filter'])
+                    del params['$filter']
 
             if max_alerts_user:
                 if max_alerts_user > 1000:
@@ -870,9 +870,9 @@ class MicrosoftTeamConnector(BaseConnector):
             if len(status) < 1:
                 return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_STATUS_FAILED_MSG)
             if len(status) > 1:
-                for st in range(len(status)-1):
+                for st in range(len(status) - 1):
                     filter += "status eq '{}'".format(status[st]) + " or "
-                filter += "status eq '{}'".format(status[st+1])
+                filter += "status eq '{}'".format(status[st + 1])
             else:
                 filter += "status eq '{}'".format(status[0])
             and_flag = True
@@ -885,9 +885,9 @@ class MicrosoftTeamConnector(BaseConnector):
             if and_flag:
                 and_for_append = " and "
             if len(tags) > 1:
-                for tg in range(len(tags)-1):
+                for tg in range(len(tags) - 1):
                     filter += and_for_append + "tags eq '{}'".format(tags[tg]) + " or "
-                filter += and_for_append + "tags eq '{}'".format(tags[tg+1])
+                filter += and_for_append + "tags eq '{}'".format(tags[tg + 1])
             else:
                 filter += and_for_append + "tags eq '{}'".format(tags[0])
             and_flag = True
@@ -961,7 +961,7 @@ class MicrosoftTeamConnector(BaseConnector):
 
         if tags:
             tags = self.convert_paramter_to_list(tags)
-            tags = ['"'+tag+'"' for tag in tags]
+            tags = ['"' + tag + '"' for tag in tags]
             if len(tags) < 1:
                 return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_TAGS_FAILED_MSG)
             data["tags"] = tags
