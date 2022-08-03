@@ -1,0 +1,1398 @@
+{
+    "appid": "781c8000-129d-4134-bcfd-41b490c288fe",
+    "name": "Microsoft Graph Security API",
+    "description": "This app uses MS Graph API to support investigate and generic actions related to the alerts",
+    "type": "network security",
+    "product_vendor": "Microsoft",
+    "logo": "logo_microsoftgraphsecurityapi.svg",
+    "logo_dark": "logo_microsoftgraphsecurityapi_dark.svg",
+    "product_name": "Graph Security API",
+    "product_version_regex": ".*",
+    "publisher": "Splunk",
+    "license": "Copyright (c) 2022 Splunk Inc.",
+    "app_version": "1.0.0",
+    "python_version": "3",
+    "latest_tested_versions": [
+        "Microsoft Graph API v1.0"
+    ],
+    "utctime_updated": "2019-08-30T07:20:45.943778Z",
+    "package_name": "phantom_microsoftgraphsecurityapi",
+    "main_module": "microsoftgraphsecurityapi_connector.py",
+    "min_phantom_version": "5.3.0",
+    "app_wizard_version": "1.0.0",
+    "rest_handler": "microsoftgraphsecurityapi_connector._handle_rest_request",
+    "configuration": {
+        "tenant_id": {
+            "description": "Tenant ID (e.g. 1e309abf-db6c-XXXX-a1d2-XXXXXXXXXXXX)",
+            "data_type": "string",
+            "required": true,
+            "order": 0
+        },
+        "ph": {
+            "data_type": "ph",
+            "order": 1
+        },
+        "client_id": {
+            "description": "Application (client) ID assigned to your Graph Security API app",
+            "data_type": "string",
+            "required": true,
+            "order": 2
+        },
+        "client_secret": {
+            "description": "Client Secret",
+            "data_type": "password",
+            "required": true,
+            "order": 3
+        },
+        "first_run_max_alerts": {
+            "description": "Maximum Alerts for scheduled polling first time",
+            "data_type": "numeric",
+            "default": 1000,
+            "order": 4
+        },
+        "max_artifacts": {
+            "description": "Maximum Allowed Artifacts in a Single Container",
+            "data_type": "numeric",
+            "default": 500,
+            "order": 5
+        },
+        "start_time_scheduled_poll": {
+            "description": "Start Time for Schedule/Manual POLL (Use this format: 1970-01-01T00:00:00Z)",
+            "data_type": "string",
+            "order": 6
+        }
+    },
+    "actions": [
+        {
+            "action": "test connectivity",
+            "identifier": "test_connectivity",
+            "description": "Validate the asset configuration for connectivity using supplied configuration",
+            "type": "test",
+            "read_only": true,
+            "parameters": {},
+            "output": [],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list alerts",
+            "identifier": "list_alerts",
+            "description": "Get the list of the alerts",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "source_address": {
+                    "description": "Source IP address",
+                    "data_type": "string",
+                    "order": 0,
+                    "primary": true,
+                    "contains": [
+                        "ip",
+                        "ipv6"
+                    ]
+                },
+                "destination_address": {
+                    "description": "Destination IP address",
+                    "data_type": "string",
+                    "order": 1,
+                    "primary": true,
+                    "contains": [
+                        "ip",
+                        "ipv6"
+                    ]
+                },
+                "destination_domain": {
+                    "description": "Destination domain portion of the destination URL",
+                    "data_type": "string",
+                    "order": 2,
+                    "primary": true,
+                    "contains": [
+                        "domain",
+                        "url"
+                    ]
+                },
+                "provider": {
+                    "description": "Specific security provider",
+                    "data_type": "string",
+                    "order": 3
+                },
+                "status": {
+                    "description": "Alert status states (allows comma-separated lists)",
+                    "data_type": "string",
+                    "allow_list": true,
+                    "order": 4
+                },
+                "tags": {
+                    "description": "Alert tags (allows comma-separated lists)",
+                    "data_type": "string",
+                    "allow_list": true,
+                    "order": 5
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgsecurity alert id"
+                    ],
+                    "example_values": [
+                        "da637704051380xxxxxx_35394xxxxx"
+                    ],
+                    "column_name": "Alert ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "newAlert"
+                    ],
+                    "column_name": "Status",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.feedback",
+                    "data_type": "string",
+                    "column_name": "Feedback",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.provider",
+                    "data_type": "string",
+                    "example_values": [
+                        "Microsoft Defender ATP"
+                    ],
+                    "column_name": "Provider",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.vendor",
+                    "data_type": "string",
+                    "example_values": [
+                        "Microsoft"
+                    ],
+                    "column_name": "Vendor",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.severity",
+                    "data_type": "string",
+                    "example_values": [
+                        "high"
+                    ],
+                    "column_name": "Severity",
+                    "column_order": 5
+                },
+                {
+                    "data_path": "action_result.data.*.assignedTo",
+                    "data_type": "string",
+                    "example_values": [
+                        "Automation"
+                    ],
+                    "column_name": "Assigned To",
+                    "column_order": 6
+                },
+                {
+                    "data_path": "action_result.data.*.category",
+                    "data_type": "string",
+                    "example_values": [
+                        "SuspiciousActivity"
+                    ],
+                    "column_name": "Category",
+                    "column_order": 7
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2021-09-23T10:44:42.9648768Z"
+                    ],
+                    "column_name": "Created Date Time",
+                    "column_order": 8
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved 2 alerts",
+                        "Successfully retrieved 112 alerts"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.source_address",
+                    "data_type": "string",
+                    "contains": [
+                        "ip",
+                        "ipv6"
+                    ],
+                    "example_values": [
+                        "10.10.10.10"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.destination_address",
+                    "data_type": "string",
+                    "contains": [
+                        "ip",
+                        "ipv6"
+                    ],
+                    "example_values": [
+                        "10.10.10.10"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.destination_domain",
+                    "data_type": "string",
+                    "contains": [
+                        "domain",
+                        "url"
+                    ],
+                    "example_values": [
+                        "www.google.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.provider",
+                    "data_type": "string",
+                    "example_values": [
+                        "Microsoft Defender ATP"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.tags",
+                    "data_type": "string",
+                    "example_values": [
+                        "tag 0",
+                        "tag 1"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "newAlert"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natDestinationAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary.total_alerts_returned",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.title",
+                    "data_type": "string",
+                    "example_values": [
+                        "Test-Hash-Alert"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.riskScore",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.confidence",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.os",
+                    "data_type": "string",
+                    "example_values": [
+                        "Windows10"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.fqdn",
+                    "data_type": "string",
+                    "example_values": [
+                        "winatpc2"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.riskScore",
+                    "data_type": "string",
+                    "example_values": [
+                        "High"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.netBiosName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.isAzureAdJoined",
+                    "data_type": "boolean",
+                    "example_values": [
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.publicIpAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "204.107.141.240"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.privateIpAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "10.1.66.216"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.isAzureAdRegistered",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.isHybridAzureDomainJoined",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "test-hash-alert"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.azureTenantId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.eventDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2021-09-23T10:42:05.1337419Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.closedDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.activityGroupName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.lastEventDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.subProvider",
+                    "data_type": "string",
+                    "example_values": [
+                        "MicrosoftDefenderATP"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.providerVersion",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.azureSubscriptionId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2021-10-29T04:31:52.96Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "bdata.bin"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.path",
+                    "data_type": "string",
+                    "example_values": [
+                        "C:\\Windows\\Temp"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.fileHash.hashType",
+                    "data_type": "string",
+                    "example_values": [
+                        "sha1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.fileHash.hashValue",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.riskScore",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.isVpn",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.logonId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.logonIp",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.aadUserId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.emailRole",
+                    "data_type": "string",
+                    "example_values": [
+                        "unknown"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.logonType",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.riskScore",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.domainName",
+                    "data_type": "string",
+                    "example_values": [
+                        "WINATPC2"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.accountName",
+                    "data_type": "string",
+                    "example_values": [
+                        "phantom"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.logonDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.logonLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.userAccountType",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.userPrincipalName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.userStates.*.onPremisesSecurityIdentifier",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.status",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.protocol",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.direction",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.riskScore",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.sourcePort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.localDnsName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natSourcePort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.urlParameters",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationUrl",
+                    "data_type": "string",
+                    "example_values": [
+                        "www.google.com"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.sourceLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.applicationName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationPort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natSourceAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natDestinationPort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.domainRegisteredDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.sourceAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationDomain",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.CustomProperties",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.securityResources.*.resource",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.securityResources.*.resourceType",
+                    "data_type": "string",
+                    "example_values": [
+                        "attacked"
+                    ]
+                }
+            ],
+            "render": {
+                "width": 12,
+                "height": 5,
+                "title": "List Alerts",
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "update alert",
+            "identifier": "update_alert",
+            "description": "Update the specified Graph Security Alert",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "alert_id": {
+                    "description": "Alert ID",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgsecurity alert id"
+                    ],
+                    "order": 0
+                },
+                "comment": {
+                    "description": "Comments",
+                    "data_type": "string",
+                    "default": "Updated by Phantom",
+                    "order": 1
+                },
+                "status": {
+                    "description": "Alert status state",
+                    "data_type": "string",
+                    "required": true,
+                    "value_list": [
+                        "unknown",
+                        "newAlert",
+                        "inProgress",
+                        "resolved"
+                    ],
+                    "default": "inProgress",
+                    "order": 2
+                },
+                "tags": {
+                    "description": "Alert tags (allows comma-separated lists)",
+                    "data_type": "string",
+                    "allow_list": true,
+                    "order": 3
+                },
+                "feedback": {
+                    "description": "Feedback",
+                    "data_type": "string",
+                    "value_list": [
+                        "unknown",
+                        "truePositive",
+                        "falsePositive",
+                        "benignPositive"
+                    ],
+                    "order": 4
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgsecurity alert id"
+                    ],
+                    "example_values": [
+                        "da63776383xxxxx_353xxxxxx"
+                    ],
+                    "column_name": "Alert ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "newAlert"
+                    ],
+                    "column_name": "Status",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.feedback",
+                    "data_type": "string",
+                    "column_name": "Feedback",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.provider",
+                    "data_type": "string",
+                    "example_values": [
+                        "Microsoft Defender ATP"
+                    ],
+                    "column_name": "Provider",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.vendor",
+                    "data_type": "string",
+                    "example_values": [
+                        "Microsoft"
+                    ],
+                    "column_name": "Vendor",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.severity",
+                    "data_type": "string",
+                    "example_values": [
+                        "high"
+                    ],
+                    "column_name": "Severity",
+                    "column_order": 5
+                },
+                {
+                    "data_path": "action_result.data.*.assignedTo",
+                    "data_type": "string",
+                    "example_values": [
+                        "Automation"
+                    ],
+                    "column_name": "Assigned To",
+                    "column_order": 6
+                },
+                {
+                    "data_path": "action_result.data.*.category",
+                    "data_type": "string",
+                    "example_values": [
+                        "SuspiciousActivity"
+                    ],
+                    "column_name": "Category",
+                    "column_order": 7
+                },
+                {
+                    "data_path": "action_result.data.*.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2021-11-01T07:47:08.41Z"
+                    ],
+                    "column_name": "Last Modified Date Time",
+                    "column_order": 8
+                },
+                {
+                    "data_path": "action_result.data.*.title",
+                    "data_type": "string",
+                    "example_values": [
+                        "Possible RDP brute-force attack"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.riskScore",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully updated alert"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.alert_updated",
+                    "data_type": "string",
+                    "example_values": [
+                        "da63776383xxxxx_353xxxxxx"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.alert_id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgsecurity alert id"
+                    ],
+                    "example_values": [
+                        "da63776383xxxxx_353xxxxxx"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.comment",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully updated alert"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "newAlert"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.tags",
+                    "data_type": "string",
+                    "example_values": [
+                        "tag 0",
+                        "tag 1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.feedback",
+                    "data_type": "string",
+                    "example_values": [
+                        "truePositive"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.alerts_updated",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.confidence",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.os",
+                    "data_type": "string",
+                    "example_values": [
+                        "Windows10"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.fqdn",
+                    "data_type": "string",
+                    "example_values": [
+                        "phantommachine"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.riskScore",
+                    "data_type": "string",
+                    "example_values": [
+                        "High"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.netBiosName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.isAzureAdJoined",
+                    "data_type": "boolean",
+                    "example_values": [
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.publicIpAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "10.10.10.10"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.privateIpAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "10.10.10.10"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.isAzureAdRegistered",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.isHybridAzureDomainJoined",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.description",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.azureTenantId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.eventDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2021-10-21T06:43:01.1705658Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.context",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://graph.microsoft.com/v1.0/$metadata#security/alerts/$entity"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.closedDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2021-10-21T09:25:38.0738034Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.activityGroupName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.lastEventDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.subProvider",
+                    "data_type": "string",
+                    "example_values": [
+                        "MicrosoftDefenderATP"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.providerVersion",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.azureSubscriptionId",
+                    "data_type": "string"
+                }
+            ],
+            "render": {
+                "width": 12,
+                "height": 5,
+                "title": "Update Alert",
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "close alert",
+            "identifier": "close_alert",
+            "description": "Close the specified Graph Security Alert",
+            "type": "generic",
+            "read_only": false,
+            "parameters": {
+                "alert_id": {
+                    "description": "Alert ID",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "msgsecurity alert id"
+                    ],
+                    "order": 0
+                },
+                "comment": {
+                    "description": "Comments",
+                    "data_type": "string",
+                    "required": true,
+                    "default": "Alert closed by Phantom Automation",
+                    "order": 1
+                },
+                "status": {
+                    "description": "Alert status state",
+                    "data_type": "string",
+                    "required": true,
+                    "value_list": [
+                        "unknown",
+                        "newAlert",
+                        "inProgress",
+                        "resolved"
+                    ],
+                    "default": "resolved",
+                    "order": 2
+                },
+                "feedback": {
+                    "description": "Feedback",
+                    "data_type": "string",
+                    "value_list": [
+                        "unknown",
+                        "truePositive",
+                        "falsePositive",
+                        "benignPositive"
+                    ],
+                    "order": 3
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgsecurity alert id"
+                    ],
+                    "example_values": [
+                        "da63776383xxxxx_353xxxxxx"
+                    ],
+                    "column_name": "Alert ID",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "newAlert"
+                    ],
+                    "column_name": "Status",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.feedback",
+                    "data_type": "string",
+                    "column_name": "Feedback",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.provider",
+                    "data_type": "string",
+                    "example_values": [
+                        "Microsoft Defender ATP"
+                    ],
+                    "column_name": "Provider",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.vendor",
+                    "data_type": "string",
+                    "example_values": [
+                        "Microsoft"
+                    ],
+                    "column_name": "Vendor",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.severity",
+                    "data_type": "string",
+                    "example_values": [
+                        "high"
+                    ],
+                    "column_name": "Severity",
+                    "column_order": 5
+                },
+                {
+                    "data_path": "action_result.data.*.assignedTo",
+                    "data_type": "string",
+                    "example_values": [
+                        "Automation"
+                    ],
+                    "column_name": "Assigned To",
+                    "column_order": 6
+                },
+                {
+                    "data_path": "action_result.data.*.category",
+                    "data_type": "string",
+                    "example_values": [
+                        "SuspiciousActivity"
+                    ],
+                    "column_name": "Category",
+                    "column_order": 7
+                },
+                {
+                    "data_path": "action_result.data.*.closedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2021-11-01T09:57:45.6923568Z"
+                    ],
+                    "column_name": "Closed Date Time",
+                    "column_order": 8
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully closed alert"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.alert_id",
+                    "data_type": "string",
+                    "contains": [
+                        "msgsecurity alert id"
+                    ],
+                    "example_values": [
+                        "da63776383xxxxx_353xxxxxx"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.comment",
+                    "data_type": "string",
+                    "example_values": [
+                        "This alert is resolved."
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "newAlert"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.feedback",
+                    "data_type": "string",
+                    "example_values": [
+                        "truePositive"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.alert_closed",
+                    "data_type": "string",
+                    "example_values": [
+                        "da63776383xxxxx_353xxxxxx"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.title",
+                    "data_type": "string",
+                    "example_values": [
+                        "Possible RDP brute-force attack"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.riskScore",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.confidence",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.os",
+                    "data_type": "string",
+                    "example_values": [
+                        "Windows10"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.fqdn",
+                    "data_type": "string",
+                    "example_values": [
+                        "testmachine11"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.riskScore",
+                    "data_type": "string",
+                    "example_values": [
+                        "High"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.netBiosName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.isAzureAdJoined",
+                    "data_type": "boolean",
+                    "example_values": [
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.publicIpAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "52.167.52.201"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.privateIpAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "10.1.1.196"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.isAzureAdRegistered",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.hostStates.*.isHybridAzureDomainJoined",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "Possible RDP brute force was observed in close proximity to another alert on the same device"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.azureTenantId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.eventDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2021-10-21T06:43:01.1705658Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.@odata.context",
+                    "data_type": "string",
+                    "example_values": [
+                        "https://graph.microsoft.com/v1.0/$metadata#security/alerts/$entity"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.createdDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2021-10-21T09:25:38.0738034Z"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.activityGroupName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.lastEventDateTime",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.subProvider",
+                    "data_type": "string",
+                    "example_values": [
+                        "MicrosoftDefenderATP"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.vendorInformation.providerVersion",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.azureSubscriptionId",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.lastModifiedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2021-11-01T09:57:46.47Z"
+                    ]
+                }
+            ],
+            "render": {
+                "width": 12,
+                "height": 5,
+                "title": "Close Alert",
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "on poll",
+            "identifier": "on_poll",
+            "description": "Ingest alerts from Graph Security API",
+            "type": "ingest",
+            "read_only": true,
+            "parameters": {
+                "start_time": {
+                    "data_type": "numeric",
+                    "description": "Parameter Ignored in this app",
+                    "order": 0
+                },
+                "end_time": {
+                    "data_type": "numeric",
+                    "description": "Parameter Ignored in this app",
+                    "order": 1
+                },
+                "container_id": {
+                    "data_type": "numeric",
+                    "description": "Parameter Ignored in this app",
+                    "order": 2
+                },
+                "container_count": {
+                    "data_type": "numeric",
+                    "description": "Maximum number of alerts to ingest",
+                    "order": 3,
+                    "required": true,
+                    "default": 1000
+                },
+                "artifact_count": {
+                    "data_type": "numeric",
+                    "description": "Parameter Ignored in this app",
+                    "order": 4,
+                    "default": 1000
+                }
+            },
+            "output": [],
+            "versions": "EQ(*)"
+        }
+    ],
+    "pip39_dependencies": {
+        "wheel": [
+            {
+                "module": "Django",
+                "input_file": "wheels/py3/Django-4.1-py3-none-any.whl"
+            },
+            {
+                "module": "asgiref",
+                "input_file": "wheels/py3/asgiref-3.5.2-py3-none-any.whl"
+            },
+            {
+                "module": "beautifulsoup4",
+                "input_file": "wheels/py3/beautifulsoup4-4.11.1-py3-none-any.whl"
+            },
+            {
+                "module": "certifi",
+                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
+            },
+            {
+                "module": "charset_normalizer",
+                "input_file": "wheels/py3/charset_normalizer-2.1.0-py3-none-any.whl"
+            },
+            {
+                "module": "idna",
+                "input_file": "wheels/py3/idna-3.3-py3-none-any.whl"
+            },
+            {
+                "module": "requests",
+                "input_file": "wheels/py3/requests-2.28.1-py3-none-any.whl"
+            },
+            {
+                "module": "soupsieve",
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
+            },
+            {
+                "module": "sqlparse",
+                "input_file": "wheels/py3/sqlparse-0.4.2-py3-none-any.whl"
+            },
+            {
+                "module": "urllib3",
+                "input_file": "wheels/shared/urllib3-1.26.11-py2.py3-none-any.whl"
+            }
+        ]
+    }
+}
