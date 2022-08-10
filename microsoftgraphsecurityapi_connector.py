@@ -264,11 +264,11 @@ class RetVal(tuple):
         return tuple.__new__(RetVal, (val1, val2))
 
 
-class MicrosoftTeamConnector(BaseConnector):
+class MicrosoftSecurityAPIConnector(BaseConnector):
 
     def __init__(self):
 
-        super(MicrosoftTeamConnector, self).__init__()
+        super(MicrosoftSecurityAPIConnector, self).__init__()
 
         self._state = None
         self._tenant = None
@@ -497,7 +497,7 @@ class MicrosoftTeamConnector(BaseConnector):
 
         asset_id = self.get_asset_id()
         rest_endpoint = MS_GRAPHSECURITYAPI_PHANTOM_ASSET_INFO_URL.format(asset_id=asset_id)
-        url = '{}{}'.format(self.get_phantom_base_url() + 'rest', rest_endpoint)
+        url = '{}{}{}'.format(self.get_phantom_base_url(), 'rest', rest_endpoint)
         ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)
 
         if phantom.is_fail(ret_val):
@@ -517,7 +517,7 @@ class MicrosoftTeamConnector(BaseConnector):
         base url of phantom
         """
 
-        url = '{}{}'.format(self.get_phantom_base_url() + 'rest', MS_GRAPHSECURITYAPI_PHANTOM_SYS_INFO_URL)
+        url = '{}{}{}'.format(self.get_phantom_base_url(), 'rest', MS_GRAPHSECURITYAPI_PHANTOM_SYS_INFO_URL)
         ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)
         if phantom.is_fail(ret_val):
             return ret_val, None
@@ -719,48 +719,6 @@ class MicrosoftTeamConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, status_message='Timeout. Please try again later.')
         self.send_progress('Authenticated')
         return phantom.APP_SUCCESS
-
-    def _handle_get_admin_consent(self, param):
-        """ This function is used to get the consent from admin.
-
-        :param param: Dictionary of input parameters
-        :return: status success/failure
-        """
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-        action_result = self.add_action_result(ActionResult(dict(param)))
-
-        ret_val, app_rest_url = self._get_app_rest_url(action_result)
-        if phantom.is_fail(ret_val):
-            return action_result.set_status(phantom.APP_ERROR,
-                                            status_message="Unable to get the URL to the app's REST Endpoint. "
-                                                           "Error: {0}".format(action_result.get_message()))
-        redirect_uri = '{0}/result'.format(app_rest_url)
-
-        # Store admin_consent_url to state file so that we can access it from _handle_rest_request
-        admin_consent_url = MS_GRAPHSECURITYAPI_ADMIN_CONSENT_URL.format(tenant_id=self._tenant, client_id=self._client_id,
-                                                             redirect_uri=redirect_uri, state=self.get_asset_id())
-        admin_consent_url = '{}{}'.format(MS_GRAPHSECURITYAPI_LOGIN_BASE_URL, admin_consent_url)
-        self._state['admin_consent_url'] = admin_consent_url
-
-        url_to_show = '{0}/admin_consent?asset_id={1}&'.format(app_rest_url, self.get_asset_id())
-        _save_app_state(self._state, self.get_asset_id(), self)
-        self.save_progress('Waiting to receive the admin consent')
-        self.save_progress('{0}{1}'.format(MS_GRAPHSECURITYAPI_ADMIN_CONSENT_MSG, url_to_show))
-
-        time.sleep(MS_GRAPHSECURITYAPI_AUTHORIZE_WAIT_TIME)
-
-        # Wait till authorization is given or timeout occurred
-        status = self._wait(action_result=action_result)
-        if phantom.is_fail(status):
-            return action_result.get_status()
-
-        self._state = _load_app_state(self.get_asset_id(), self)
-
-        if not self._state or not self._state.get('admin_consent'):
-            return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_ADMIN_CONSENT_FAILED_MSG)
-
-        return action_result.set_status(phantom.APP_SUCCESS, status_message=MS_GRAPHSECURITYAPI_ADMIN_CONSENT_PASSED_MSG)
 
     def convert_paramter_to_list(self, param):
         """
@@ -1538,7 +1496,7 @@ if __name__ == '__main__':
         in_json = json.loads(in_json)
         print(json.dumps(in_json, indent=4))
 
-        connector = MicrosoftTeamConnector()
+        connector = MicrosoftSecurityAPIConnector()
         connector.print_progress_message = True
 
         if session_id is not None:
