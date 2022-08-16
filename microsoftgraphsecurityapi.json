@@ -222,8 +222,7 @@
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
-                        "Successfully retrieved 2 alerts",
-                        "Successfully retrieved 112 alerts"
+                        "Successfully retrieved 2 alerts"
                     ]
                 },
                 {
@@ -270,8 +269,7 @@
                     "data_path": "action_result.parameter.tags",
                     "data_type": "string",
                     "example_values": [
-                        "tag 0",
-                        "tag 1"
+                        "tag 0"
                     ]
                 },
                 {
@@ -498,7 +496,7 @@
                     "data_path": "action_result.data.*.userStates.*.accountName",
                     "data_type": "string",
                     "example_values": [
-                        "phantom"
+                        "account 1"
                     ]
                 },
                 {
@@ -835,8 +833,7 @@
                     "data_path": "action_result.parameter.tags",
                     "data_type": "string",
                     "example_values": [
-                        "tag 0",
-                        "tag 1"
+                        "tag 0"
                     ]
                 },
                 {
