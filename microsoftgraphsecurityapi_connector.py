@@ -1353,7 +1353,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         if alerts:
             if 'lastModifiedDateTime' not in alerts[0]:
-                return action_result.set_status(phantom.APP_ERROR, "No lastModifiedDateTime in last ingested alert.")
+                return action_result.set_status(phantom.APP_ERROR, "No lastModifiedDateTime in last ingested alert")
 
             self._state['last_time'] = alerts[0]['lastModifiedDateTime']
             self.save_state(self._state)
