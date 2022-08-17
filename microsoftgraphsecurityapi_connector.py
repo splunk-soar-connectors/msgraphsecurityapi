@@ -480,7 +480,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), resp_json)
 
         try:
-            r = request_func(endpoint, data=data, headers=headers, verify=verify, params=params)
+            timeout = MS_GRAPHSECURITYAPI_DEFAULT_REQUEST_TIMEOUT
+            r = request_func(endpoint, data=data, headers=headers, verify=verify, params=params, timeout=timeout)
         except Exception as e:
             error_txt = _get_error_message_from_exception(e)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}"
@@ -1462,7 +1463,8 @@ if __name__ == '__main__':
     if username and password:
         try:
             print("Accessing the Login page")
-            r = requests.get(BaseConnector._get_phantom_base_url() + "login", verify=False)
+            timeout = MS_GRAPHSECURITYAPI_DEFAULT_REQUEST_TIMEOUT
+            r = requests.get(BaseConnector._get_phantom_base_url() + "login", verify=False, timeout=timeout)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -1475,15 +1477,15 @@ if __name__ == '__main__':
             headers['Referer'] = BaseConnector._get_phantom_base_url() + 'login'
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(BaseConnector._get_phantom_base_url() + "login", verify=False, data=data, headers=headers)
+            r2 = requests.post(BaseConnector._get_phantom_base_url() + "login", verify=False, data=data, headers=headers, timeout=timeout)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: {}".format(str(e)))
-            exit(1)
+            sys.exit(1)
 
     if len(sys.argv) < 2:
         print("No test json specified as input")
-        exit(0)
+        sys.exit(0)
 
     with open(sys.argv[1]) as f:
         in_json = f.read()
@@ -1499,4 +1501,4 @@ if __name__ == '__main__':
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
 
-    exit(0)
+    sys.exit(0)
