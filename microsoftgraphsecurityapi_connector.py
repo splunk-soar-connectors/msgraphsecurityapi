@@ -83,8 +83,7 @@ def _load_app_state(asset_id, app_connector=None):
             state = json.loads(state_file_data)
     except Exception as e:
         if app_connector:
-            error_code, error_msg = _get_error_message_from_exception(e, app_connector)
-            error_txt = "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
+            error_txt = _get_error_message_from_exception(e)
             app_connector.debug_print('In _load_app_state: {0}'.format(error_txt))
 
     if app_connector:
@@ -117,36 +116,38 @@ def _save_app_state(state, asset_id, app_connector):
         with open(real_state_file_path, 'w+') as state_file_obj:
             state_file_obj.write(json.dumps(state))
     except Exception as e:
-        error_code, error_msg = _get_error_message_from_exception(e, app_connector)
-        error_txt = "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
+        error_txt = _get_error_message_from_exception(e)
         print('Unable to save state file: {0}'.format(str(error_txt)))
         return phantom.APP_ERROR
 
     return phantom.APP_SUCCESS
 
 
-def _get_error_message_from_exception(e, app_connector=None):
-    """ This function is used to get appropriate error message from the exception.
+def _get_error_message_from_exception(e):
+    """
+    Get appropriate error message from the exception.
     :param e: Exception object
     :return: error message
     """
+    error_code = None
     error_msg = MS_GRAPHSECURITYAPI_ERROR_MSG_UNKNOWN
+
     try:
-        if e.args:
+        if hasattr(e, "args"):
             if len(e.args) > 1:
                 error_code = e.args[0]
                 error_msg = e.args[1]
             elif len(e.args) == 1:
-                error_code = MS_GRAPHSECURITYAPI_ERROR_CODE_UNAVAILABLE
                 error_msg = e.args[0]
-        else:
-            error_code = MS_GRAPHSECURITYAPI_ERROR_CODE_UNAVAILABLE
-            error_msg = MS_GRAPHSECURITYAPI_ERROR_MSG_UNKNOWN
     except Exception:
-        error_code = MS_GRAPHSECURITYAPI_ERROR_CODE_UNAVAILABLE
-        error_msg = MS_GRAPHSECURITYAPI_ERROR_MSG_UNKNOWN
+        pass
 
-    return error_code, error_msg
+    if not error_code:
+        error_text = "Error Message: {}".format(error_msg)
+    else:
+        error_text = "Error Code: {}. Error Message: {}".format(error_code, error_msg)
+
+    return error_text
 
 
 def _handle_login_response(request):
@@ -333,8 +334,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         try:
             resp_json = response.json()
         except Exception as e:
-            error_code, error_msg = _get_error_message_from_exception(e, self)
-            error_txt = "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
+            error_txt = _get_error_message_from_exception(e)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".
                                                    format(error_txt)), None)
 
@@ -482,8 +482,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         try:
             r = request_func(endpoint, data=data, headers=headers, verify=verify, params=params)
         except Exception as e:
-            error_code, error_msg = _get_error_message_from_exception(e, self)
-            error_txt = "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
+            error_txt = _get_error_message_from_exception(e)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}"
                                                    .format(error_txt)), resp_json)
         return self._process_response(r, action_result)
