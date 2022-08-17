@@ -32,8 +32,8 @@ and limitations under the License.
               </li>
       </ul>
   </ul>
-  After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for Test Phantom</b> at the bottom of the screen.
-  <h2>Phantom Graph Asset</h2>
+  After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for &lt;your_organization_name_as_on_azure_portal&gt;</b> at the bottom of the screen.
+  <h2>Splunk SOAR Graph Asset</h2>
   When creating an asset for the <b>MS Graph Security API</b> app, place <b>Application (client) ID</b> of the app created during the app registration on the Azure Portal in the <b>Application (client) ID</b> field and place the client secret generated during the app registration process in the <b>Client Secret</b> field. Then, after filling out the <b>Tenant ID</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
   <br><br>
   After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for Microsoft Graph Security API to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in a previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
