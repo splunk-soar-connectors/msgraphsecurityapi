@@ -90,8 +90,12 @@ MS_GRAPHSECURITYAPI_INVALID_PERMRISSION_ERR = "Error occurred while saving the n
      Please check the owner, owner group, and the permissions of the state file. The Phantom  \
      user should have the correct access rights and ownership for the corresponding state file \
      (refer to readme file for more information)."
-MS_GRAPHSECURITYAPI_LIMIT_VALIDATION_MSG = "Please provide a valid non-zero positive integer value in the {parameter} parameter."
-MS_GRAPHSECURITYAPI_LIMIT_VALIDATION_ALLOW_ZERO_MSG = "Please provide zero or positive integer value in the {parameter} parameter."
+
+# Constants relating to 'validate_integers'
+MS_GRAPHSECURITYAPI_VALID_INT_MSG = "Please provide a valid integer value in the '{param}' parameter"
+MS_GRAPHSECURITYAPI_NON_NEG_NON_ZERO_INT_MSG = "Please provide a valid non-zero positive integer value in '{param}' parameter"
+MS_GRAPHSECURITYAPI_NON_NEG_INT_MSG = "Please provide a valid non-negative integer value in the '{param}' parameter"
+
 MS_GRAPHSECURITYAPI_UTC_SINCE_TIME_ERROR = "Please provide time in the span of UTC time since Unix epoch 1970-01-01T00:00:00Z."
 MS_GRAPHSECURITYAPI_GREATER_EQUAL_TIME_ERR = 'Invalid {0}, can not be greater than or equal to current UTC time'
 MS_GRAPHSECURITYAPI_CONFIG_TIME_POLL_NOW = "'Time range for POLL NOW' or 'Start Time for Schedule/Manual POLL' asset configuration parameter"

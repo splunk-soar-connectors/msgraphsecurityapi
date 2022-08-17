@@ -1173,7 +1173,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         return ret_val, message, cid
 
     def _validate_integers(self, action_result, parameter, key, allow_zero=False):
-        """Validate the provided input parameter value is a non-zero positive integer and returns the integer value of the parameter itself.
+        """
+        Validate an integer.
 
         Parameters:
             :param action_result: object of ActionResult class
@@ -1183,30 +1184,22 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         Returns:
             :return: integer value of the parameter
         """
-        try:
-            parameter = int(parameter)
 
-            if parameter <= 0:
-                if allow_zero:
-                    if parameter < 0:
-                        action_result.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_LIMIT_VALIDATION_ALLOW_ZERO_MSG.format(parameter=key))
-                        return None
-                else:
-                    action_result.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_LIMIT_VALIDATION_MSG.format(parameter=key))
-                    return None
-        except Exception as e:
-            self.debug_print("Integer validation failed. Error occurred while validating integer value. Error: {}".format(str(e)))
-            error_text = ''
+        if parameter is not None:
+            try:
+                if not float(parameter).is_integer():
+                    return action_result.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_VALID_INT_MSG.format(param=key)), None
 
-            if allow_zero:
-                error_text = MS_GRAPHSECURITYAPI_LIMIT_VALIDATION_ALLOW_ZERO_MSG.format(parameter=key)
-            else:
-                error_text = MS_GRAPHSECURITYAPI_LIMIT_VALIDATION_MSG.format(parameter=key)
+                parameter = int(parameter)
+            except Exception:
+                return action_result.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_VALID_INT_MSG.format(param=key)), None
 
-            action_result.set_status(phantom.APP_ERROR, error_text)
-            return None
+            if parameter < 0:
+                return action_result.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_NON_NEG_INT_MSG.format(param=key)), None
+            if not allow_zero and parameter == 0:
+                return action_result.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_NON_NEG_NON_ZERO_INT_MSG.format(param=key)), None
 
-        return parameter
+        return phantom.APP_SUCCESS, parameter
 
     def _check_invalid_since_utc_time(self, action_result, time):
         """Determine that given time is not before 1970-01-01T00:00:00Z.
@@ -1269,9 +1262,10 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         max_artifacts = config.get("max_artifacts", MS_GRAPHSECURITYAPI_CONFIG_MAX_ARTIFACTS_DEFAULT)
 
         # Fetch Max artifacts limit for single container
-        self._max_artifacts = self._validate_integers(
+        ret_val, self._max_artifacts = self._validate_integers(
             action_result, max_artifacts, MS_GRAPHSECURITYAPI_CONFIG_MAX_ARTIFACTS)
-        if self._max_artifacts is None:
+
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         # Fetch start time for the scheduled run and
@@ -1313,10 +1307,11 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         if max_alerts:
             # validate max_alert parameter
-            self.max_alerts = self._validate_integers(
+            ret_val, self.max_alerts = self._validate_integers(
                 action_result, max_alerts, MS_GRAPHSECURITYAPI_CONFIG_MAX_ALERTS)
-            if self.max_alerts is None:
+            if phantom.is_fail(ret_val):
                 return action_result.get_status()
+
             max_alerts_main = max_alerts
             if max_alerts > 1000:
                 max_alerts = 1000
