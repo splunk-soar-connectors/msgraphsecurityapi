@@ -91,42 +91,16 @@
                         "ipv6"
                     ]
                 },
-                "destination_address": {
-                    "description": "Destination IP address",
-                    "data_type": "string",
-                    "order": 1,
-                    "primary": true,
-                    "contains": [
-                        "ip",
-                        "ipv6"
-                    ]
-                },
-                "destination_domain": {
-                    "description": "Destination domain portion of the destination URL",
-                    "data_type": "string",
-                    "order": 2,
-                    "primary": true,
-                    "contains": [
-                        "domain",
-                        "url"
-                    ]
-                },
                 "provider": {
                     "description": "Specific security provider",
                     "data_type": "string",
-                    "order": 3
+                    "order": 1
                 },
                 "status": {
                     "description": "Alert status states (allows comma-separated lists)",
                     "data_type": "string",
                     "allow_list": true,
-                    "order": 4
-                },
-                "tags": {
-                    "description": "Alert tags (allows comma-separated lists)",
-                    "data_type": "string",
-                    "allow_list": true,
-                    "order": 5
+                    "order": 2
                 }
             },
             "output": [
@@ -238,39 +212,10 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.destination_address",
-                    "data_type": "string",
-                    "contains": [
-                        "ip",
-                        "ipv6"
-                    ],
-                    "example_values": [
-                        "10.10.10.10"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.destination_domain",
-                    "data_type": "string",
-                    "contains": [
-                        "domain",
-                        "url"
-                    ],
-                    "example_values": [
-                        "www.google.com"
-                    ]
-                },
-                {
                     "data_path": "action_result.parameter.provider",
                     "data_type": "string",
                     "example_values": [
                         "Microsoft Defender ATP"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.tags",
-                    "data_type": "string",
-                    "example_values": [
-                        "tag 0"
                     ]
                 },
                 {
@@ -659,12 +604,6 @@
                     "default": "inProgress",
                     "order": 2
                 },
-                "tags": {
-                    "description": "Alert tags (allows comma-separated lists)",
-                    "data_type": "string",
-                    "allow_list": true,
-                    "order": 3
-                },
                 "feedback": {
                     "description": "Feedback",
                     "data_type": "string",
@@ -674,7 +613,7 @@
                         "falsePositive",
                         "benignPositive"
                     ],
-                    "order": 4
+                    "order": 3
                 }
             },
             "output": [
@@ -828,13 +767,6 @@
                     "data_type": "string",
                     "example_values": [
                         "newAlert"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.tags",
-                    "data_type": "string",
-                    "example_values": [
-                        "tag 0"
                     ]
                 },
                 {

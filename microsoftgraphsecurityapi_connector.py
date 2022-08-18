@@ -925,11 +925,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         status = param.get(MS_GRAPHSECURITYAPI_STATUS)
-        tags = param.get(MS_GRAPHSECURITYAPI_TAG)
         provider = param.get(MS_GRAPHSECURITYAPI_PROVIDER)
         source_address = param.get(MS_GRAPHSECURITYAPI_SOURCE_ADDRESS)
-        destination_address = param.get(MS_GRAPHSECURITYAPI_DESTINATION_ADDRESS)
-        destination_domain = param.get(MS_GRAPHSECURITYAPI_DESTINATION_DOMAIN)
 
         if status:
             status = self.convert_paramter_to_list(status)
@@ -943,21 +940,6 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
                 filter += "status eq '{}'".format(status[0])
             and_flag = True
 
-        if tags:
-            if type(tags) != list:
-                tags = self.convert_paramter_to_list(tags)
-            if len(tags) < 1:
-                return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_TAGS_FAILED_MSG)
-            if and_flag:
-                and_for_append = " and "
-            if len(tags) > 1:
-                for tg in range(len(tags) - 1):
-                    filter += and_for_append + "tags eq '{}'".format(tags[tg]) + " or "
-                filter += and_for_append + "tags eq '{}'".format(tags[tg + 1])
-            else:
-                filter += and_for_append + "tags eq '{}'".format(tags[0])
-            and_flag = True
-
         if provider:
             if and_flag:
                 and_for_append = " and "
@@ -969,20 +951,6 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
                 and_for_append = " and "
             filter += and_for_append + "networkConnections/any(s:s/sourceAddress eq '{source_address}')".\
                 format(source_address=source_address)
-            and_flag = True
-
-        if destination_address:
-            if and_flag:
-                and_for_append = " and "
-            filter += and_for_append + "networkConnections/any(d:d/destinationAddress eq '{destination_address}')".\
-                    format(destination_address=destination_address)
-            and_flag = True
-
-        if destination_domain:
-            if and_flag:
-                and_for_append = " and "
-            filter += and_for_append + "networkConnections/any(d:d/destinationDomain eq '{destination_domain}')".\
-                    format(destination_domain=destination_domain)
 
         endpoint = MS_GRAPHSECURITYAPI_BASE_URL + MS_GRAPHSECURITYAPI_ALERTS_ENDPOINT
 
@@ -1022,15 +990,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         alert_id = param[MS_GRAPHSECURITYAPI_ALERTID]
         status = param[MS_GRAPHSECURITYAPI_STATUS]
         comment = param.get(MS_GRAPHSECURITYAPI_COMMENT)
-        tags = param.get(MS_GRAPHSECURITYAPI_TAG)
         feedback = param.get(MS_GRAPHSECURITYAPI_FEEDBACK)
-
-        if tags:
-            tags = self.convert_paramter_to_list(tags)
-            tags = ['"' + tag + '"' for tag in tags]
-            if len(tags) < 1:
-                return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_TAGS_FAILED_MSG)
-            data["tags"] = tags
 
         if comment:
             data["comments"] = [comment]
