@@ -23,6 +23,7 @@ from datetime import datetime
 from urllib.parse import urlencode
 
 # SOAR App imports
+import encryption_helper
 import phantom.app as phantom
 import requests
 from bs4 import BeautifulSoup
@@ -63,12 +64,13 @@ def _load_app_state(asset_id, app_connector=None):
     :return: state: Current state file as a dictionary
     """
 
+    asset_id = str(asset_id)
     if not asset_id or not asset_id.isalnum():
         if app_connector:
             app_connector.debug_print('In _load_app_state: Invalid asset_id')
         return {}
 
-    dirpath = os.path.split(__file__)[0]
+    dirpath = os.path.dirname(os.path.abspath(__file__))
     state_file = '{0}/{1}_state.json'.format(dirpath, asset_id)
     real_state_file_path = os.path.abspath(state_file)
     if not os.path.dirname(real_state_file_path) == dirpath:
@@ -88,6 +90,14 @@ def _load_app_state(asset_id, app_connector=None):
 
     if app_connector:
         app_connector.debug_print('Loaded state: ', state)
+
+    try:
+        state = _decrypt_state(state, asset_id)
+    except Exception as e:
+        if app_connector:
+            app_connector.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_DECRYPTION_ERR, str(e)))
+        state = {}
+
     return state
 
 
@@ -100,7 +110,13 @@ def _save_app_state(state, asset_id, app_connector):
     :return: status: phantom.APP_SUCCESS
     """
 
-    dirpath = os.path.split(__file__)[0]
+    asset_id = str(asset_id)
+    if not asset_id or not asset_id.isalnum():
+        if app_connector:
+            app_connector.debug_print('In _load_app_state: Invalid asset_id')
+        return {}
+
+    dirpath = os.path.dirname(os.path.abspath(__file__))
     state_file = '{0}/{1}_state.json'.format(dirpath, asset_id)
 
     real_state_file_path = os.path.abspath(state_file)
@@ -108,6 +124,13 @@ def _save_app_state(state, asset_id, app_connector):
         if app_connector:
             app_connector.debug_print('In _save_app_state: Invalid asset_id')
         return {}
+
+    try:
+        state = _encrypt_state(state, asset_id)
+    except Exception as e:
+        if app_connector:
+            app_connector.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_ENCRYPTION_ERR, str(e)))
+        return phantom.APP_ERROR
 
     if app_connector:
         app_connector.debug_print('Saving state: ', state)
@@ -117,7 +140,10 @@ def _save_app_state(state, asset_id, app_connector):
             state_file_obj.write(json.dumps(state))
     except Exception as e:
         error_txt = _get_error_message_from_exception(e)
-        print('Unable to save state file: {0}'.format(str(error_txt)))
+        msg = 'Unable to save state file: {0}'.format(str(error_txt))
+        if app_connector:
+            app_connector.debug_print(msg)
+        print(msg)
         return phantom.APP_ERROR
 
     return phantom.APP_SUCCESS
@@ -258,6 +284,58 @@ def _get_dir_name_from_app_name(app_name):
     return app_name
 
 
+def _decrypt_state(state, salt):
+    """
+    Decrypts the state.
+
+    :param state: state dictionary
+    :param salt: salt used for decryption
+    :return: decrypted state
+    """
+    if not state.get("is_encrypted"):
+        return state
+
+    access_token = state.get("token", {}).get("access_token")
+    if access_token:
+        state["token"]["access_token"] = encryption_helper.decrypt(access_token, salt)
+
+    refresh_token = state.get("token", {}).get("refresh_token")
+    if refresh_token:
+        state["token"]["refresh_token"] = encryption_helper.decrypt(refresh_token, salt)
+
+    code = state.get("code")
+    if code:
+        state["code"] = encryption_helper.decrypt(code, salt)
+
+    return state
+
+
+def _encrypt_state(state, salt):
+    """
+    Encrypts the state.
+
+    :param state: state dictionary
+    :param salt: salt used for encryption
+    :return: encrypted state
+    """
+
+    access_token = state.get("token", {}).get("access_token")
+    if access_token:
+        state["token"]["access_token"] = encryption_helper.encrypt(access_token, salt)
+
+    refresh_token = state.get("token", {}).get("refresh_token")
+    if refresh_token:
+        state["token"]["refresh_token"] = encryption_helper.encrypt(refresh_token, salt)
+
+    code = state.get("code")
+    if code:
+        state["code"] = encryption_helper.encrypt(code, salt)
+
+    state["is_encrypted"] = True
+
+    return state
+
+
 class RetVal(tuple):
 
     def __new__(cls, val1, val2):
@@ -277,6 +355,36 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         self._client_secret = None
         self._access_token = None
         self._refresh_token = None
+
+    def load_state(self):
+        """
+        Load the contents of the state file to the state dictionary and decrypt it.
+
+        :return: loaded state
+        """
+        state = super().load_state()
+        try:
+            state = _decrypt_state(state, self._asset_id)
+        except Exception as e:
+            self.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_DECRYPTION_ERR, str(e)))
+            state = None
+
+        return state
+
+    def save_state(self, state):
+        """
+        Encrypt and save the current state dictionary to the the state file.
+
+        :param state: state dictionary
+        :return: status
+        """
+        try:
+            state = _encrypt_state(state, self._asset_id)
+        except Exception as e:
+            self.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_ENCRYPTION_ERR, str(e)))
+            return phantom.APP_ERROR
+
+        return super().save_state(state)
 
     def _process_empty_reponse(self, response, action_result):
         """ This function is used to process empty response.
