@@ -605,7 +605,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         asset_id = self.get_asset_id()
         rest_endpoint = MS_GRAPHSECURITYAPI_PHANTOM_ASSET_INFO_URL.format(asset_id=asset_id)
-        url = '{}{}{}'.format(self.get_phantom_base_url(), 'rest', rest_endpoint)
+        base_url = self.get_phantom_base_url()
+        url = '{}{}{}'.format(base_url if base_url.endswith('/') else base_url + '/', 'rest', rest_endpoint)
         ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)
 
         if phantom.is_fail(ret_val):
@@ -625,7 +626,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         base url of phantom
         """
 
-        url = '{}{}{}'.format(self.get_phantom_base_url(), 'rest', MS_GRAPHSECURITYAPI_PHANTOM_SYS_INFO_URL)
+        base_url = self.get_phantom_base_url()
+        url = '{}{}{}'.format(base_url if base_url.endswith('/') else base_url + '/', 'rest', MS_GRAPHSECURITYAPI_PHANTOM_SYS_INFO_URL)
         ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)
         if phantom.is_fail(ret_val):
             return ret_val, None
@@ -1101,7 +1103,9 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         cid = None
         count = None
 
-        url = f'{self.get_phantom_base_url()}rest/container?_filter_name__contains="{name}"&sort=start_time&order=desc'
+        base_url = self.get_phantom_base_url()
+        base_url = base_url if base_url.endswith('/') else base_url + '/'
+        url = f'{base_url}rest/container?_filter_name__contains="{name}"&sort=start_time&order=desc'
 
         try:
             r = requests.get(url, verify=False)
