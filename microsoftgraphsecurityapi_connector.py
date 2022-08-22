@@ -364,7 +364,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         """
         state = super().load_state()
         try:
-            state = _decrypt_state(state, self._asset_id)
+            state = _decrypt_state(state, self.get_asset_id())
         except Exception as e:
             self.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_DECRYPTION_ERR, str(e)))
             state = None
@@ -379,7 +379,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         :return: status
         """
         try:
-            state = _encrypt_state(state, self._asset_id)
+            state = _encrypt_state(state, self.get_asset_id())
         except Exception as e:
             self.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_ENCRYPTION_ERR, str(e)))
             return phantom.APP_ERROR
