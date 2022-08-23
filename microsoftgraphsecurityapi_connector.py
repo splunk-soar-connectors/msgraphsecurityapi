@@ -1047,7 +1047,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         alert_id = param[MS_GRAPHSECURITYAPI_ALERTID]
-        status = param.get(MS_GRAPHSECURITYAPI_STATUS, "resolved")
+        status = MS_GRAPHSECURITYAPI_RESOLVED_STATUS
         comment = param[MS_GRAPHSECURITYAPI_COMMENT]
         feedback = param.get(MS_GRAPHSECURITYAPI_FEEDBACK)
 
