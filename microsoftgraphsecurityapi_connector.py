@@ -41,7 +41,7 @@ def _handle_login_redirect(request, key):
 
     :param request: Data given to REST endpoint
     :param key: Key to search in state file
-    :return: response authorization_url/admin_consent_url
+    :return: response authorization_url
     """
 
     asset_id = request.GET.get('asset_id')
@@ -199,30 +199,12 @@ def _handle_login_response(request):
         return HttpResponse('Server returned {0}'.format(message))
 
     code = request.GET.get('code')
-    admin_consent = request.GET.get('admin_consent')
 
-    # If none of the code or admin_consent is available
-    if not (code or admin_consent):
+    # If code is unavailable
+    if not code:
         return HttpResponse('Error while authenticating\n{0}'.format(json.dumps(request.GET)))
 
     state = _load_app_state(asset_id)
-
-    # If value of admin_consent is available
-    if admin_consent:
-        if admin_consent == 'True':
-            admin_consent = True
-        else:
-            admin_consent = False
-
-        state['admin_consent'] = admin_consent
-        _save_app_state(state, asset_id, None)
-
-        # If admin_consent is True
-        if admin_consent:
-            return HttpResponse('Admin Consent received. Please close this window.', content_type="text/plain")
-        return HttpResponse('Admin Consent declined. Please close this window and try again later.', content_type="text/plain", status=400)
-
-    # If value of admin_consent is not available, value of code is available
     state['code'] = code
     _save_app_state(state, asset_id, None)
 
@@ -241,10 +223,6 @@ def _handle_rest_request(request, path_parts):
         return HttpResponse('error: True, message: Invalid REST endpoint request')
 
     call_type = path_parts[1]
-
-    # To handle admin_consent request in get_admin_consent action
-    if call_type == 'admin_consent':
-        return _handle_login_redirect(request, 'admin_consent_url')
 
     # To handle authorize request in test connectivity action
     if call_type == 'start_oauth':
@@ -714,7 +692,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         return artifacts
 
     def _handle_test_connectivity(self, param):
-        """ Testing of given credentials and obtaining authorization/admin consent for all other actions.
+        """ Testing of given credentials and obtaining authorization for all other actions.
 
         :param param: (not used in this method)
         :return: status success/failure
