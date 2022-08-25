@@ -297,9 +297,6 @@ def _encrypt_state(state, salt):
     :return: encrypted state
     """
 
-    if state.get("is_encrypted"):
-        return state
-
     access_token = state.get("token", {}).get("access_token")
     if access_token:
         state["token"]["access_token"] = encryption_helper.encrypt(access_token, salt)
@@ -614,7 +611,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             return ret_val, None
 
         phantom_base_url = resp_json.get('base_url')
-        phantom_base_url = phantom_base_url if phantom_base_url.endswith('/') else phantom_base_url + '/'
+        phantom_base_url = phantom_base_url.rstrip('/')
+
         if not phantom_base_url:
             return action_result.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_BASE_URL_NOT_FOUND_MSG), None
         return phantom.APP_SUCCESS, phantom_base_url
@@ -753,7 +751,6 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_TEST_CONNECTIVITY_FAILED_MSG)
 
         current_code = self._state['code']
-        self.save_state(self._state)
 
         self.save_progress(MS_GRAPHSECURITYAPI_GENERATING_ACCESS_TOKEN_MSG)
 
