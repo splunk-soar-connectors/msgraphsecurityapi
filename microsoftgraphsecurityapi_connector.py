@@ -113,7 +113,7 @@ def _save_app_state(state, asset_id, app_connector):
     asset_id = str(asset_id)
     if not asset_id or not asset_id.isalnum():
         if app_connector:
-            app_connector.debug_print('In _load_app_state: Invalid asset_id')
+            app_connector.debug_print('In _save_app_state: Invalid asset_id')
         return {}
 
     dirpath = os.path.dirname(os.path.abspath(__file__))
@@ -662,7 +662,6 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         # Save state
         self.save_state(self._state)
-        _save_app_state(self._state, self.get_asset_id(), self)
 
         # Scenario -
         # The newely generated token is not being saved to state file and
@@ -675,7 +674,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _create_alert_artifacts(self, action_result, alerts):
+    def _create_alert_artifacts(self, alerts):
 
         artifacts = []
         for alert in alerts:
@@ -836,7 +835,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             return False
         return True
 
-    def _paginator(self, action_result, endpoint, params=None, query=None, max_alerts_user=None, providers=1):
+    def _paginator(self, action_result, endpoint, params=None, query=None, limit=None):
         """
         This action is used to create an iterator that will paginate through responses from called methods.
 
@@ -845,47 +844,36 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         :param **kwargs: Dictionary of Input parameters
         """
 
-        list_items = list()
-        next_link = None
+        list_items = []
 
         if query:
             params = {"$filter": query}
 
         while True:
-            if next_link:
-                endpoint = next_link
-                ret_val, response = self._update_request(action_result, endpoint, params=params)
-            else:
-                ret_val, response = self._update_request(action_result, endpoint, params=params)
-
+            ret_val, response = self._update_request(action_result, endpoint, params=params)
             if phantom.is_fail(ret_val):
                 return action_result.get_status(), None
 
-            if response.get("value"):
-                list_items.extend(response.get("value"))
+            res_val = response.get("value")
+            if res_val:
+                list_items.extend(res_val)
 
-            next_link = response.get('@odata.nextLink', None)
-            if not next_link:
+            if limit and len(list_items) >= limit:
+                break
+
+            next_link = response.get('@odata.nextLink')
+            if next_link is not None:
+                endpoint = next_link
+            else:
                 break
 
             if params is not None:
                 if '$top' in params:
-                    if params['$top'] and len(list_items) >= max_alerts_user:
-                        break
                     del params['$top']
-
-                if '$search' in params:
-                    del params['$search']
 
                 if '$filter' in params:
                     del params['$filter']
 
-            if max_alerts_user:
-                if max_alerts_user > 1000:
-                    if len(list_items) >= max_alerts_user * providers:
-                        break
-                    else:
-                        max_alerts_user -= len(list_items)
             if params == {}:
                 params = None
 
@@ -1306,110 +1294,102 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         config = self.get_config()
-        last_modified_time = ''
+        last_modified_time = {}
         alerts = []
         max_alerts = None
-        max_alerts_main = None
-        params = {'$orderby': 'lastModifiedDateTime desc'}
-        max_artifacts = config.get("max_artifacts", MS_GRAPHSECURITYAPI_CONFIG_MAX_ARTIFACTS_DEFAULT)
+        params = {'$orderby': 'lastModifiedDateTime asc'}
 
         # Fetch Max artifacts limit for single container
+        max_artifacts = config.get("max_artifacts", MS_GRAPHSECURITYAPI_CONFIG_MAX_ARTIFACTS_DEFAULT)
         ret_val, self._max_artifacts = self._validate_integers(
             action_result, max_artifacts, MS_GRAPHSECURITYAPI_CONFIG_MAX_ARTIFACTS)
 
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        # Fetch start time for the scheduled run and
-        # Check date format for '<digit><d/h/m/s>' or 'start_time' format for given 'start_time_scheduled_poll' asset config
-        # It will return list of start time and end time
-        # And this time list will use whenever we have to consider run as first run
-        time = config.get("start_time_scheduled_poll", None)
+        # Fetch start time for the scheduled run and check date format
+        # This time will be used whenever we have to consider run as first run
+        time = config.get("start_time_scheduled_poll")
         if time:
             ret_val = self._check_date_format(action_result, time)
             if phantom.is_fail(ret_val):
                 self.save_progress(action_result.get_message())
                 return action_result.set_status(phantom.APP_ERROR)
-            last_modified_time = time
+            last_modified_time.update({'All': time})
+
         if self.is_poll_now():
-            max_alerts = param[phantom.APP_JSON_CONTAINER_COUNT]
+            self._max_artifacts = param[phantom.APP_JSON_ARTIFACT_COUNT]
         elif self._state.get('first_run', True):
             self._state['first_run'] = False
             max_alerts = config.get('first_run_max_alerts', 1000)
-        else:
-            if self._state.get('last_time'):
-                last_modified_time = self._state['last_time']
+        elif self._state.get('last_time'):
+            last_modified_time = self._state['last_time']
 
         endpoint = MS_GRAPHSECURITYAPI_BASE_URL + MS_GRAPHSECURITYAPI_ALERTS_ENDPOINT
 
         # For getting total providers
         params['$top'] = 1
+        ret_val, res = self._update_request(action_result, endpoint, params=params)
+        top_one_alerts = res.get("value")
 
-        ret_val, alerts = self._paginator(action_result, endpoint, params=params, max_alerts_user=1, providers=1)
         if phantom.is_fail(ret_val):
             message = "On-poll action failed"
             if str(action_result.get_message()) == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
                 message = action_result.get_message()
             return action_result.set_status(phantom.APP_ERROR, status_message=message)
+
         # Get total provider and create dictonary
-        total_providers = len(alerts)
         providers = dict()
-        for alert in alerts:
+        for alert in top_one_alerts:
             providers.update({alert['vendorInformation']['provider']: list()})
 
-        if max_alerts:
-            # validate max_alert parameter
-            ret_val, self.max_alerts = self._validate_integers(
-                action_result, max_alerts, MS_GRAPHSECURITYAPI_CONFIG_MAX_ALERTS)
+        params['$top'] = 1000
+
+        for provider in providers.keys():
+
+            params['$filter'] = "vendorInformation/provider eq '{}'".format(provider)
+
+            if last_modified_time:
+                all_time = last_modified_time.get('All')
+                provider_time = last_modified_time.get(provider)
+                time = provider_time or all_time
+                params['$filter'] += "and lastModifiedDateTime ge {0}".format(time)
+
+            ret_val, alerts = self._paginator(action_result, endpoint, params=params, limit=max_alerts)
             if phantom.is_fail(ret_val):
-                return action_result.get_status()
+                message = "On-poll action failed"
+                if str(action_result.get_message()) == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
+                    message = action_result.get_message()
+                return action_result.set_status(phantom.APP_ERROR, status_message=message)
 
-            max_alerts_main = max_alerts
-            if max_alerts > 1000:
-                max_alerts = 1000
-            # For gettting alerts respecte to max_alerts
-            params['$top'] = max_alerts
-        else:
-            del params['$top']
-
-        if last_modified_time:
-            params['$filter'] = "lastModifiedDateTime ge {0}".format(last_modified_time)
-
-        ret_val, alerts = self._paginator(action_result, endpoint, params=params, max_alerts_user=max_alerts_main, providers=total_providers)
-        if phantom.is_fail(ret_val):
-            message = "On-poll action failed"
-            if str(action_result.get_message()) == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
-                message = action_result.get_message()
-            return action_result.set_status(phantom.APP_ERROR, status_message=message)
-
-        for alert in alerts:
-            providers[alert['vendorInformation']['provider']].append(alert)
+            providers[provider].extend(alerts)
 
         # Ingest the alerts
-        for key, result in providers.items():
+        for key, vals in providers.items():
             try:
                 self.debug_print("Try to create artifacts for the alerts")
                 # Create artifacts from the alerts
-                artifacts = self._create_alert_artifacts(action_result, result)
+                artifacts = self._create_alert_artifacts(action_result, vals)
             except Exception as e:
                 self.debug_print("Error occurred while creating artifacts for alerts. Error: {}".format(str(e)))
                 # Make alerts as empty list
-                alerts = list()
+                vals = list()
 
             # Save artifacts for alerts
             try:
                 self.debug_print("Try to ingest artifacts for the alerts")
-                self._save_artifacts(action_result, artifacts, key=key)
+                container_name = "{} {}".format(key, str(datetime.now()))
+                self._save_artifacts(action_result, artifacts, key=container_name)
             except Exception as e:
                 self.debug_print("Error occurred while saving artifacts for alerts. Error: {}".format(str(e)))
 
-        if alerts:
-            if 'lastModifiedDateTime' not in alerts[0]:
-                return action_result.set_status(phantom.APP_ERROR, "No lastModifiedDateTime in last ingested alert")
+            last_time_dict = self._state.get('last_time')
 
-            self._state['last_time'] = alerts[0]['lastModifiedDateTime']
-            self.save_state(self._state)
-            _save_app_state(self._state, self.get_asset_id(), self)
+            if vals:
+                if not last_time_dict:
+                    self._state.update({'last_time': {key: vals[-1]['lastModifiedDateTime']}})
+                else:
+                    self._state['last_time'].update({key: vals[-1]['lastModifiedDateTime']})
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -1465,7 +1445,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         self._access_token = self._state.get(MS_GRAPHSECURITYAPI_JSON_TOKEN, {}).get(MS_GRAPHSECURITYAPI_JSON_ACCESS_TOKEN)
         self._refresh_token = self._state.get(MS_GRAPHSECURITYAPI_JSON_TOKEN, {}).get(MS_GRAPHSECURITYAPI_JSON_REFRESH_TOKEN)
         self._max_artifacts = None
-        self.set_validator('ipv6', self._is_ip)
+        # self.set_validator('ipv6', self._is_ip)
 
         return phantom.APP_SUCCESS
 
@@ -1480,7 +1460,6 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         # Save the state, this data is saved across actions and app upgrades
         self.save_state(self._state)
-        _save_app_state(self._state, self.get_asset_id(), self)
         return phantom.APP_SUCCESS
 
 
