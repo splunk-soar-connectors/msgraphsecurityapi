@@ -859,6 +859,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
                 list_items.extend(res_val)
 
             if limit and len(list_items) >= limit:
+                list_items = list_items[:limit]
                 break
 
             next_link = response.get('@odata.nextLink')
@@ -1056,71 +1057,6 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, status_message=MS_GRAPHSECURITYAPI_CLOSE_ALERT_PASSED_MSG)
 
-    def _check_for_existing_container(self, action_result, name):
-        """Check for existing container and return container ID and remaining margin count.
-
-        Parameters:
-            :param action_result: object of ActionResult class
-            :param name: Name of the container to check
-        Returns:
-            :return: status(phantom.APP_SUCCESS/phantom.APP_ERROR),
-                     cid(container_id),
-                     count(remaining margin calculated with given _max_artifacts)
-        """
-        cid = None
-        count = None
-
-        base_url = self.get_phantom_base_url()
-        base_url = base_url if base_url.endswith('/') else base_url + '/'
-        url = f'{base_url}rest/container?_filter_name__contains="{name}"&sort=start_time&order=desc'
-
-        try:
-            r = requests.get(url, verify=False)
-        except Exception as e:
-            self.debug_print("Error making local rest call: {0}".format(str(e)))
-            self.debug_print('DB QUERY: {}'.format(url))
-            return phantom.APP_ERROR, cid, count
-
-        try:
-            resp_json = r.json()
-        except Exception as e:
-            self.debug_print('Exception caught: {0}'.format(str(e)))
-            return phantom.APP_ERROR, cid, count
-
-        container = resp_json.get('data', [])
-        if not container:
-            self.debug_print("Not having any existing container")
-            return phantom.APP_ERROR, cid, count
-
-        # Consider latest container as existing container from the received list of containers
-        try:
-            container = container[0]
-            if not isinstance(container, dict):
-                self.debug_print("Invalid response received while checking for the existing container")
-                return phantom.APP_ERROR, cid, count
-        except Exception as e:
-            self.debug_print("Invalid response received while checking for the existing container. Error: {}".format(str(e)))
-            return phantom.APP_ERROR, cid, count
-
-        cid = container.get('id')
-        artifact_count = container.get('artifact_count')
-
-        self.debug_print("Existing Container ID: {}".format(cid))
-        self.debug_print("Existing Container artifacts count: {}".format(artifact_count))
-
-        try:
-            count = int(self._max_artifacts) - int(artifact_count)
-            # Not having space in latest container or exceed a configured limit for artifacts
-            if count <= 0:
-                self.debug_print("Not having enough space for the artifacts in the existing container")
-                cid = None
-                count = None
-        except Exception as e:
-            self.debug_print("Error occurred while calculating remaining container space. Error: {}".format(str(e)))
-            cid = None
-            count = None
-        return phantom.APP_SUCCESS, cid, count
-
     def _save_artifacts(self, action_result, results, key):
         """Ingest all the given artifacts accordingly into the new or existing container.
 
@@ -1132,33 +1068,18 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             :return: None
         """
         # Initialize
-        cid = None
         start = 0
-        count = None
 
         # If not results return
         if not results:
             return
 
-        # Check for existing container only if it's a scheduled/interval poll and not first run
-        if not (self.is_poll_now() or self._state['first_run']):
-            ret_val, cid, count = self._check_for_existing_container(action_result, key)
-            if phantom.is_fail(ret_val):
-                self.debug_print("Failed to check for existing container")
-
-        if cid and count:
-            ret_val = self._ingest_artifacts(action_result, results[:count], key, cid=cid)
-            if phantom.is_fail(ret_val):
-                self.debug_print("Failed to save ingested artifacts in the existing container")
-                return
-            # One part is ingested
-            start = count
-
         # Divide artifacts list into chunks which length equals to max_artifacts configured in the asset
         artifacts = [results[i:i + self._max_artifacts] for i in range(start, len(results), self._max_artifacts)]
 
         for artifacts_list in artifacts:
-            ret_val = self._ingest_artifacts(action_result, artifacts_list, key)
+            container_name = "{} {}".format(key, str(datetime.now()))
+            ret_val = self._ingest_artifacts(action_result, artifacts_list, container_name)
             if phantom.is_fail(ret_val):
                 self.debug_print("Failed to save ingested artifacts in the new container")
                 return
@@ -1309,16 +1230,15 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         # Fetch start time for the scheduled run and check date format
         # This time will be used whenever we have to consider run as first run
-        time = config.get("start_time_scheduled_poll")
-        if time:
-            ret_val = self._check_date_format(action_result, time)
-            if phantom.is_fail(ret_val):
-                self.save_progress(action_result.get_message())
-                return action_result.set_status(phantom.APP_ERROR)
-            last_modified_time.update({'All': time})
+        time = config.get("start_time_for_poll", "1970-01-01T00:00:00Z")
+        ret_val = self._check_date_format(action_result, time)
+        if phantom.is_fail(ret_val):
+            self.save_progress(action_result.get_message())
+            return action_result.set_status(phantom.APP_ERROR)
+        last_modified_time.update({'All': time})
 
         if self.is_poll_now():
-            self._max_artifacts = param[phantom.APP_JSON_ARTIFACT_COUNT]
+            max_alerts = param[phantom.APP_JSON_ARTIFACT_COUNT]
         elif self._state.get('first_run', True):
             self._state['first_run'] = False
             max_alerts = config.get('first_run_max_alerts', 1000)
@@ -1343,7 +1263,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         for alert in top_one_alerts:
             providers.update({alert['vendorInformation']['provider']: list()})
 
-        params['$top'] = 1000
+        params['$top'] = max_alerts if (max_alerts and max_alerts <= 1000) else 1000
 
         for provider in providers.keys():
 
@@ -1369,7 +1289,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             try:
                 self.debug_print("Try to create artifacts for the alerts")
                 # Create artifacts from the alerts
-                artifacts = self._create_alert_artifacts(action_result, vals)
+                artifacts = self._create_alert_artifacts(vals)
             except Exception as e:
                 self.debug_print("Error occurred while creating artifacts for alerts. Error: {}".format(str(e)))
                 # Make alerts as empty list
@@ -1378,14 +1298,13 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             # Save artifacts for alerts
             try:
                 self.debug_print("Try to ingest artifacts for the alerts")
-                container_name = "{} {}".format(key, str(datetime.now()))
-                self._save_artifacts(action_result, artifacts, key=container_name)
+                self._save_artifacts(action_result, artifacts, key=key)
             except Exception as e:
                 self.debug_print("Error occurred while saving artifacts for alerts. Error: {}".format(str(e)))
 
             last_time_dict = self._state.get('last_time')
 
-            if vals:
+            if vals and not self.is_poll_now():
                 if not last_time_dict:
                     self._state.update({'last_time': {key: vals[-1]['lastModifiedDateTime']}})
                 else:
