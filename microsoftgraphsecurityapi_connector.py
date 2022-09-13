@@ -1250,13 +1250,13 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         # For getting total providers
         params['$top'] = 1
         ret_val, res = self._update_request(action_result, endpoint, params=params)
-        top_one_alerts = res.get("value")
-
         if phantom.is_fail(ret_val):
             message = "On-poll action failed"
             if str(action_result.get_message()) == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
                 message = action_result.get_message()
             return action_result.set_status(phantom.APP_ERROR, status_message=message)
+
+        top_one_alerts = res.get("value")
 
         # Get total provider and create dictonary
         providers = dict()
