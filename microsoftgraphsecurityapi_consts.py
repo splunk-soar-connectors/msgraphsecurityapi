@@ -89,6 +89,8 @@ MS_GRAPHSECURITYAPI_INVALID_PERMRISSION_ERR = "Error occurred while saving the n
      Please check the owner, owner group, and the permissions of the state file. The Phantom  \
      user should have the correct access rights and ownership for the corresponding state file \
      (refer to readme file for more information)."
+MS_GRAPHSECURITYAPI_ENCRYPTION_ERR = "Error occurred while encrypting the state file"
+MS_GRAPHSECURITYAPI_DECRYPTION_ERR = "Error occurred while decrypting the state file"
 
 # Constants relating to 'validate_integers'
 MS_GRAPHSECURITYAPI_VALID_INT_MSG = "Please provide a valid integer value in the '{param}' parameter"
@@ -106,6 +108,4 @@ MS_GRAPHSECURITYAPI_AUTHORIZE_WAIT_TIME = 15
 MS_GRAPHSECURITYAPI_DT_STR_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 MS_GRAPHSECURITYAPI_DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
-
-MS_GRAPHSECURITYAPI_ENCRYPTION_ERR = "Error occurred while encrypting the state file"
-MS_GRAPHSECURITYAPI_DECRYPTION_ERR = "Error occurred while decrypting the state file"
+MS_GRAPHSECURITYAPI_TOP_PARAM_UPPER_LIMIT = 1000

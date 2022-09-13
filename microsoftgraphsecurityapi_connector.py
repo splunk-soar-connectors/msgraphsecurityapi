@@ -1261,7 +1261,10 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         for alert in top_one_alerts:
             providers.update({alert['vendorInformation']['provider']: list()})
 
-        params['$top'] = max_alerts if (max_alerts and max_alerts <= 1000) else 1000
+        if max_alerts and max_alerts <= MS_GRAPHSECURITYAPI_TOP_PARAM_UPPER_LIMIT:
+            params['$top'] = max_alerts
+        else:
+            params['$top'] = MS_GRAPHSECURITYAPI_TOP_PARAM_UPPER_LIMIT
 
         for provider in providers.keys():
 
