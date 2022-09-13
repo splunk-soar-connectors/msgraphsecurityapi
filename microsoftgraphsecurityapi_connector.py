@@ -684,9 +684,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             alert_artifact['cef_types'] = {'id': [alert['id']]}
             alert_artifact['source_data_identifier'] = alert.get('id')
             alert_artifact['data'] = alert
-
-            cef = alert
-            alert_artifact['cef'] = cef
+            alert_artifact['cef'] = alert
             # Append to the artifacts list
             artifacts.append(alert_artifact)
 
@@ -1269,11 +1267,10 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
             params['$filter'] = "vendorInformation/provider eq '{}'".format(provider)
 
-            if last_modified_time:
-                all_time = last_modified_time.get('All')
-                provider_time = last_modified_time.get(provider)
-                time = provider_time or all_time
-                params['$filter'] += "and lastModifiedDateTime ge {0}".format(time)
+            all_time = last_modified_time.get('All')
+            provider_time = last_modified_time.get(provider)
+            time = provider_time or all_time
+            params['$filter'] += "and lastModifiedDateTime ge {0}".format(time)
 
             ret_val, alerts = self._paginator(action_result, endpoint, params=params, limit=max_alerts)
             if phantom.is_fail(ret_val):
@@ -1302,9 +1299,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             except Exception as e:
                 self.debug_print("Error occurred while saving artifacts for alerts. Error: {}".format(str(e)))
 
-            last_time_dict = self._state.get('last_time')
-
             if vals and not self.is_poll_now():
+                last_time_dict = self._state.get('last_time')
                 if not last_time_dict:
                     self._state.update({'last_time': {key: vals[-1]['lastModifiedDateTime']}})
                 else:
