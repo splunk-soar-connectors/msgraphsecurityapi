@@ -1077,12 +1077,12 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         for artifacts_list in artifacts:
             container_name = "{} {}".format(key, str(datetime.now()))
-            ret_val = self._ingest_artifacts(action_result, artifacts_list, container_name)
+            ret_val = self._ingest_artifacts(artifacts_list, container_name)
             if phantom.is_fail(ret_val):
                 self.debug_print("Failed to save ingested artifacts in the new container")
                 return
 
-    def _ingest_artifacts(self, action_result, artifacts, key, cid=None):
+    def _ingest_artifacts(self, artifacts, key, cid=None):
         """Ingest artifacts into the Phantom server.
 
         Parameters:
@@ -1094,7 +1094,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             :return: status(phantom.APP_SUCCESS/phantom.APP_ERROR)
         """
         self.debug_print(f"Ingesting {len(artifacts)} artifacts for {key} results into the {'existing' if {cid} else 'new'} container")
-        ret_val, message, cid = self._save_ingested(action_result, artifacts, key, cid=cid)
+        ret_val, message, cid = self._save_ingested(artifacts, key, cid=cid)
 
         if phantom.is_fail(ret_val):
             self.debug_print("Failed to save ingested artifacts, error msg: {}".format(message))
@@ -1102,7 +1102,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _save_ingested(self, action_result, artifacts, key, cid=None):
+    def _save_ingested(self, artifacts, key, cid=None):
         """Save the artifacts into the given container ID(cid) and if not given create new container with given key(name).
 
         Parameters:
@@ -1160,7 +1160,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         return phantom.APP_SUCCESS, parameter
 
-    def _check_invalid_since_utc_time(self, action_result, time):
+    def _check_invalid_since_utc_time(self, time):
         """Determine that given time is not before 1970-01-01T00:00:00Z.
 
         Parameters:
