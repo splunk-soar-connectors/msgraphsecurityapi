@@ -41,8 +41,8 @@ MS_GRAPHSECURITYAPI_FEEDBACK = 'feedback'
 MS_GRAPHSECURITYAPI_RESOLVED_STATUS = "resolved"
 
 # URL endpoints
-MS_GRAPHSECURITYAPI_PHANTOM_ASSET_INFO_URL = '/asset/{asset_id}'
-MS_GRAPHSECURITYAPI_PHANTOM_SYS_INFO_URL = '/system_info'
+MS_GRAPHSECURITYAPI_ASSET_INFO_URL = '/asset/{asset_id}'
+MS_GRAPHSECURITYAPI_SYS_INFO_URL = '/system_info'
 MS_GRAPHSECURITYAPI_ADMIN_CONSENT_URL = '/{tenant_id}/adminconsent?client_id={client_id}&redirect_uri={redirect_uri}&state={state}'
 MS_GRAPHSECURITYAPI_AUTHORIZE_URL = '/{tenant_id}/oauth2/v2.0/authorize?client_id={client_id}&redirect_uri={redirect_uri}' \
                    '&response_type={response_type}&state={state}&scope={scope}&response_mode={resp_mode}'
@@ -78,7 +78,7 @@ MS_GRAPHSECURITYAPI_ERROR_CODE_UNAVAILABLE = 'Error code unavailable'
 MS_GRAPHSECURITYAPI_ERROR_MSG_UNKNOWN = 'Unknown error occurred. Please check the asset configuration and|or action parameters.'
 MS_GRAPHSECURITYAPI_GENERATING_ACCESS_TOKEN_MSG = 'Generating access token'
 MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG = 'Token not available. Please run test connectivity first.'
-MS_GRAPHSECURITYAPI_BASE_URL_NOT_FOUND_MSG = 'Phantom Base URL not found in System Settings. \
+MS_GRAPHSECURITYAPI_BASE_URL_NOT_FOUND_MSG = 'Splunk SOAR Base URL not found in System Settings. \
                             Please specify this value in System Settings.'
 MS_GRAPHSECURITYAPI_ADMIN_CONSENT_MSG = 'Please hit the mentioned URL in another tab of browser \
      to authorize the user and provide the admin consent: '
@@ -86,7 +86,7 @@ MS_GRAPHSECURITYAPI_STATE_FILE_CORRUPT_ERROR = "Error occurred while loading the
      Resetting the state file with the default format. Please try again."
 MS_GRAPHSECURITYAPI_INVALID_PERMRISSION_ERR = "Error occurred while saving the newly generated access token \
      (in place of the expired token) in the state file. \
-     Please check the owner, owner group, and the permissions of the state file. The Phantom  \
+     Please check the owner, owner group, and the permissions of the state file. The Splunk SOAR  \
      user should have the correct access rights and ownership for the corresponding state file \
      (refer to readme file for more information)."
 MS_GRAPHSECURITYAPI_ENCRYPTION_ERR = "Error occurred while encrypting the state file"

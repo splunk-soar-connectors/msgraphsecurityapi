@@ -614,7 +614,7 @@
                 "comment": {
                     "description": "Comments",
                     "data_type": "string",
-                    "default": "Updated by Phantom",
+                    "default": "Updated by Splunk SOAR",
                     "order": 1
                 },
                 "status": {
@@ -1053,7 +1053,7 @@
                 "comment": {
                     "description": "Comments",
                     "data_type": "string",
-                    "default": "Alert closed by Phantom Automation",
+                    "default": "Alert closed by Splunk SOAR",
                     "order": 1
                 },
                 "status": {

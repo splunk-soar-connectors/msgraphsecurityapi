@@ -582,7 +582,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         """
 
         asset_id = self.get_asset_id()
-        rest_endpoint = MS_GRAPHSECURITYAPI_PHANTOM_ASSET_INFO_URL.format(asset_id=asset_id)
+        rest_endpoint = MS_GRAPHSECURITYAPI_ASSET_INFO_URL.format(asset_id=asset_id)
         base_url = self.get_phantom_base_url()
         url = '{}{}{}'.format(base_url if base_url.endswith('/') else base_url + '/', 'rest', rest_endpoint)
         ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)
@@ -605,7 +605,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         """
 
         base_url = self.get_phantom_base_url()
-        url = '{}{}{}'.format(base_url if base_url.endswith('/') else base_url + '/', 'rest', MS_GRAPHSECURITYAPI_PHANTOM_SYS_INFO_URL)
+        url = '{}{}{}'.format(base_url if base_url.endswith('/') else base_url + '/', 'rest', MS_GRAPHSECURITYAPI_SYS_INFO_URL)
         ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)
         if phantom.is_fail(ret_val):
             return ret_val, None
