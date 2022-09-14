@@ -1217,6 +1217,13 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.parameter.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "newAlert"
+                    ]
+                },
+                {
                     "data_path": "action_result.summary.alert_closed",
                     "data_type": "string",
                     "example_values": [

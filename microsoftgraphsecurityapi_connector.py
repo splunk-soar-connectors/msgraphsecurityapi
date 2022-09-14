@@ -878,6 +878,27 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         return phantom.APP_SUCCESS, list_items
 
+    def _get_alert_vendor_info(self, action_result, endpoint):
+        """ This function is used to Check for valid alert id
+            and then get vendor information
+
+        :param :action_result: object of ActionResult class
+               :endpoint: Endpoint to get data of alert
+        :return: status success/failure
+        """
+        ret_val, alert = self._update_request(action_result, endpoint)
+        if phantom.is_fail(ret_val):
+            message = MS_GRAPHSECURITYAPI_ALERT_FAILED_MSG
+            if str(action_result.get_message()) == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
+                message = action_result.get_message()
+            return action_result.set_status(phantom.APP_ERROR, status_message=message), None
+
+        vendor_info = {}
+        vendor_info["provider"] = alert['vendorInformation']['provider']
+        vendor_info["vendor"] = alert['vendorInformation']['vendor']
+
+        return phantom.APP_SUCCESS, vendor_info
+
     def _handle_list_alerts(self, param):
         """ This function is used to list all the alerts.
 
@@ -968,17 +989,10 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         endpoint = MS_GRAPHSECURITYAPI_BASE_URL + MS_GRAPHSECURITYAPI_ALERTS_ENDPOINT + "/{}".format(alert_id)
 
-        # Check for valid alert id and then take vendor information and add it into data for updation
-        ret_val, alert = self._update_request(action_result, endpoint)
-        if phantom.is_fail(ret_val):
-            message = MS_GRAPHSECURITYAPI_ALERT_FAILED_MSG
-            if str(action_result.get_message()) == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
-                message = action_result.get_message()
-            return action_result.set_status(phantom.APP_ERROR, status_message=message)
+        ret_val, vendor_info = self._get_alert_vendor_info(action_result, endpoint)
 
-        vendor_info = {}
-        vendor_info["provider"] = alert['vendorInformation']['provider']
-        vendor_info["vendor"] = alert['vendorInformation']['vendor']
+        if phantom.is_fail(ret_val):
+            return ret_val
 
         data["vendorInformation"] = vendor_info
         data["status"] = status
@@ -1006,32 +1020,24 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         :return: status success/failure
         """
 
-        endpoint = ''
         data = dict()
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         alert_id = param[MS_GRAPHSECURITYAPI_ALERTID]
-        status = param.get(MS_GRAPHSECURITYAPI_STATUS)
+        status = param[MS_GRAPHSECURITYAPI_STATUS]
         comment = param.get(MS_GRAPHSECURITYAPI_COMMENT)
         feedback = param.get(MS_GRAPHSECURITYAPI_FEEDBACK)
 
         endpoint = MS_GRAPHSECURITYAPI_BASE_URL + MS_GRAPHSECURITYAPI_ALERTS_ENDPOINT + "/{}".format(alert_id)
 
-        # Check for valid alert id and then take vendor information and add it into data for updation
-        ret_val, alert = self._update_request(action_result, endpoint)
+        ret_val, vendor_info = self._get_alert_vendor_info(action_result, endpoint)
         if phantom.is_fail(ret_val):
-            message = MS_GRAPHSECURITYAPI_ALERT_FAILED_MSG
-            if str(action_result.get_message()) == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
-                message = action_result.get_message()
-            return action_result.set_status(phantom.APP_ERROR, status_message=message)
-
-        vendor_info = {}
-        vendor_info["provider"] = alert['vendorInformation']['provider']
-        vendor_info["vendor"] = alert['vendorInformation']['vendor']
+            return ret_val
 
         data["vendorInformation"] = vendor_info
+
         if feedback:
             data["feedback"] = feedback
         if comment:
@@ -1056,12 +1062,11 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS, status_message=MS_GRAPHSECURITYAPI_CLOSE_ALERT_PASSED_MSG)
 
-    def _save_artifacts(self, action_result, results, key):
+    def _save_artifacts(self, results, key):
         """Ingest all the given artifacts accordingly into the new or existing container.
 
         Parameters:
-            :param action_result: object of ActionResult class
-            :param results: list of artifacts of IoCs or alerts results
+            :param results: list of artifacts of alerts results
             :param key: name of the container in which data will be ingested
         Returns:
             :return: None
@@ -1083,19 +1088,18 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
                 self.debug_print("Failed to save ingested artifacts in the new container")
                 return
 
-    def _ingest_artifacts(self, artifacts, key, cid=None):
+    def _ingest_artifacts(self, artifacts, key):
         """Ingest artifacts into the Phantom server.
 
         Parameters:
             :param action_result: object of ActionResult class
             :param artifacts: list of artifacts
             :param key: name of the container in which data will be ingested
-            :param cid: value of container ID
         Returns:
             :return: status(phantom.APP_SUCCESS/phantom.APP_ERROR)
         """
-        self.debug_print(f"Ingesting {len(artifacts)} artifacts for {key} results into the {'existing' if {cid} else 'new'} container")
-        ret_val, message, cid = self._save_ingested(artifacts, key, cid=cid)
+        self.debug_print(f"Ingesting {len(artifacts)} artifacts for {key} results into the 'new' container")
+        ret_val, message, _ = self._save_ingested(artifacts, key)
 
         if phantom.is_fail(ret_val):
             self.debug_print("Failed to save ingested artifacts, error msg: {}".format(message))
@@ -1103,33 +1107,25 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _save_ingested(self, artifacts, key, cid=None):
-        """Save the artifacts into the given container ID(cid) and if not given create new container with given key(name).
+    def _save_ingested(self, artifacts, key):
+        """Create new container with given key(name) and save the artifacts.
 
         Parameters:
-            :param action_result: object of ActionResult class
             :param artifacts: list of artifacts of IoCs or alerts results
             :param key: name of the container in which data will be ingested
-            :param cid: value of container ID
         Returns:
             :return: status(phantom.APP_SUCCESS/phantom.APP_ERROR), message, cid(container_id)
         """
         artifacts[-1]["run_automation"] = True
-        if cid:
-            for artifact in artifacts:
-                artifact['container_id'] = cid
-            ret_val, message, _ = self.save_artifacts(artifacts)
-            self.debug_print("save_artifacts returns, value: {}, reason: {}".format(ret_val, message))
-        else:
-            container = dict()
-            container.update({
-                "name": key,
-                "description": 'alert ingested using MS Graph API',
-                "source_data_identifier": key,
-                "artifacts": artifacts
-            })
-            ret_val, message, cid = self.save_container(container)
-            self.debug_print("save_container (with artifacts) returns, value: {}, reason: {}, id: {}".format(ret_val, message, cid))
+        container = dict()
+        container.update({
+            "name": key,
+            "description": 'alert ingested using MS Graph API',
+            "source_data_identifier": key,
+            "artifacts": artifacts
+        })
+        ret_val, message, cid = self.save_container(container)
+        self.debug_print("save_container (with artifacts) returns, value: {}, reason: {}, id: {}".format(ret_val, message, cid))
         return ret_val, message, cid
 
     def _validate_integers(self, action_result, parameter, key, allow_zero=False):
@@ -1142,7 +1138,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             :param key: string value of parameter name
             :param allow_zero: indicator for given parameter that whether zero value is allowed or not
         Returns:
-            :return: integer value of the parameter
+            :return: status phantom.APP_ERROR/phantom.APP_SUCCESS, integer value of the parameter or None in case of failure
         """
 
         if parameter is not None:
@@ -1299,7 +1295,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             # Save artifacts for alerts
             try:
                 self.debug_print("Try to ingest artifacts for the alerts")
-                self._save_artifacts(action_result, artifacts, key=key)
+                self._save_artifacts(artifacts, key=key)
             except Exception as e:
                 self.debug_print("Error occurred while saving artifacts for alerts. Error: {}".format(str(e)))
 
