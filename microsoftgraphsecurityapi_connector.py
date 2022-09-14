@@ -95,7 +95,7 @@ def _load_app_state(asset_id, app_connector=None):
         state = _decrypt_state(state, asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_DECRYPTION_ERR, str(e)))
+            app_connector.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_DECRYPTION_ERROR, str(e)))
         state = {}
 
     return state
@@ -129,7 +129,7 @@ def _save_app_state(state, asset_id, app_connector):
         state = _encrypt_state(state, asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_ENCRYPTION_ERR, str(e)))
+            app_connector.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_ENCRYPTION_ERROR, str(e)))
         return phantom.APP_ERROR
 
     if app_connector:
@@ -344,7 +344,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         try:
             state = _decrypt_state(state, self.get_asset_id())
         except Exception as e:
-            self.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_DECRYPTION_ERR, str(e)))
+            self.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_DECRYPTION_ERROR, str(e)))
             state = None
 
         return state
@@ -359,7 +359,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         try:
             state = _encrypt_state(state, self.get_asset_id())
         except Exception as e:
-            self.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_ENCRYPTION_ERR, str(e)))
+            self.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_ENCRYPTION_ERROR, str(e)))
             return phantom.APP_ERROR
 
         return super().save_state(state)
@@ -669,7 +669,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         # token which are saved to state file after successful generation of new token are same or not.
         self._state = self.load_state()
         if self._access_token != self._state.get('token', {}).get('access_token'):
-            return action_result.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_INVALID_PERMRISSION_ERR)
+            return action_result.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_INVALID_PERMRISSION_ERROR)
 
         return phantom.APP_SUCCESS
 
@@ -1187,7 +1187,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
             # Checking future date
             if time >= end_time:
-                msg = MS_GRAPHSECURITYAPI_GREATER_EQUAL_TIME_ERR.format(MS_GRAPHSECURITYAPI_CONFIG_TIME_POLL_NOW)
+                msg = MS_GRAPHSECURITYAPI_GREATER_EQUAL_TIME_ERROR.format(MS_GRAPHSECURITYAPI_CONFIG_TIME_POLL_NOW)
                 return action_result.set_status(phantom.APP_ERROR, msg)
         except Exception as e:
             message = "Invalid date string received. Error occurred while checking date format. Error: {}".format(str(e))

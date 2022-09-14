@@ -84,13 +84,13 @@ MS_GRAPHSECURITYAPI_ADMIN_CONSENT_MSG = 'Please hit the mentioned URL in another
      to authorize the user and provide the admin consent: '
 MS_GRAPHSECURITYAPI_STATE_FILE_CORRUPT_ERROR = "Error occurred while loading the state file due to its unexpected format.\
      Resetting the state file with the default format. Please try again."
-MS_GRAPHSECURITYAPI_INVALID_PERMRISSION_ERR = "Error occurred while saving the newly generated access token \
+MS_GRAPHSECURITYAPI_INVALID_PERMRISSION_ERROR = "Error occurred while saving the newly generated access token \
      (in place of the expired token) in the state file. \
      Please check the owner, owner group, and the permissions of the state file. The Splunk SOAR  \
      user should have the correct access rights and ownership for the corresponding state file \
      (refer to readme file for more information)."
-MS_GRAPHSECURITYAPI_ENCRYPTION_ERR = "Error occurred while encrypting the state file"
-MS_GRAPHSECURITYAPI_DECRYPTION_ERR = "Error occurred while decrypting the state file"
+MS_GRAPHSECURITYAPI_ENCRYPTION_ERROR = "Error occurred while encrypting the state file"
+MS_GRAPHSECURITYAPI_DECRYPTION_ERROR = "Error occurred while decrypting the state file"
 
 # Constants relating to 'validate_integers'
 MS_GRAPHSECURITYAPI_VALID_INT_MSG = "Please provide a valid integer value in the '{param}' parameter"
@@ -98,7 +98,7 @@ MS_GRAPHSECURITYAPI_NON_NEG_NON_ZERO_INT_MSG = "Please provide a valid non-zero 
 MS_GRAPHSECURITYAPI_NON_NEG_INT_MSG = "Please provide a valid non-negative integer value in the '{param}' parameter"
 
 MS_GRAPHSECURITYAPI_UTC_SINCE_TIME_ERROR = "Please provide time in the span of UTC time since Unix epoch 1970-01-01T00:00:00Z."
-MS_GRAPHSECURITYAPI_GREATER_EQUAL_TIME_ERR = 'Invalid {0}, can not be greater than or equal to current UTC time'
+MS_GRAPHSECURITYAPI_GREATER_EQUAL_TIME_ERROR = 'Invalid {0}, can not be greater than or equal to current UTC time'
 MS_GRAPHSECURITYAPI_CONFIG_TIME_POLL_NOW = "'Time range for POLL NOW' or 'Start Time for Schedule/Manual POLL' asset configuration parameter"
 
 # Time constants
