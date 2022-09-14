@@ -558,6 +558,32 @@
                     "example_values": [
                         "attacked"
                     ]
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.fileHash",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.malwareStates.*.name",
+                    "data_type": "string",
+                    "example_value": "Virus:DOS/EICAR_Test_File"
+                },
+                {
+                    "data_path": "action_result.data.*.malwareStates.*.family",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.malwareStates.*.category",
+                    "data_type": "string",
+                    "example_value": "Virus"
+                },
+                {
+                    "data_path": "action_result.data.*.malwareStates.*.severity",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.malwareStates.*.wasRunning",
+                    "data_type": "string"
                 }
             ],
             "render": {
@@ -893,6 +919,110 @@
                 {
                     "data_path": "action_result.data.*.azureSubscriptionId",
                     "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.name",
+                    "data_type": "string",
+                    "example_value": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.path",
+                    "data_type": "string",
+                    "example_value": "C:\\Program Files\\Google\\Chrome\\Application"
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.fileHash.hashType",
+                    "data_type": "string",
+                    "example_value": "sha1"
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.fileHash.hashValue",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.riskScore",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.status",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.protocol",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.direction",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.riskScore",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.sourcePort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.localDnsName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natSourcePort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.sourceAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.urlParameters",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationUrl",
+                    "data_type": "string",
+                    "example_value": "google.com"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.sourceLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.applicationName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationPort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natSourceAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationDomain",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natDestinationPort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natDestinationAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.domainRegisteredDateTime",
+                    "data_type": "string"
                 }
             ],
             "render": {
@@ -1223,6 +1353,110 @@
                     "example_values": [
                         "2021-11-01T09:57:46.47Z"
                     ]
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.name",
+                    "data_type": "string",
+                    "example_value": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.path",
+                    "data_type": "string",
+                    "example_value": "C:\\Program Files\\Google\\Chrome\\Application"
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.fileHash.hashType",
+                    "data_type": "string",
+                    "example_value": "sha1"
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.fileHash.hashValue",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.fileStates.*.riskScore",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.status",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.protocol",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.direction",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.riskScore",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.sourcePort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.localDnsName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natSourcePort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.sourceAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.urlParameters",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationUrl",
+                    "data_type": "string",
+                    "example_value": "google.com"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.sourceLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.applicationName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationPort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natSourceAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationDomain",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natDestinationPort",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.destinationLocation",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.natDestinationAddress",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.networkConnections.*.domainRegisteredDateTime",
+                    "data_type": "string"
                 }
             ],
             "render": {
