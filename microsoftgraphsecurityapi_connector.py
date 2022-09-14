@@ -685,6 +685,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             alert_artifact['source_data_identifier'] = alert.get('id')
             alert_artifact['data'] = alert
             alert_artifact['cef'] = alert
+            alert_artifact["run_automation"] = True
             # Append to the artifacts list
             artifacts.append(alert_artifact)
 
@@ -1019,8 +1020,6 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         :param param: Dictionary of input parameters
         :return: status success/failure
         """
-
-        data = dict()
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -1036,15 +1035,16 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return ret_val
 
+        data = dict()
         data["vendorInformation"] = vendor_info
+        data["status"] = status
+        data["closedDateTime"] = datetime.utcnow().strftime(MS_GRAPHSECURITYAPI_DT_STR_FORMAT)
 
         if feedback:
             data["feedback"] = feedback
         if comment:
             data["comments"] = [comment]
 
-        data["status"] = status
-        data["closedDateTime"] = datetime.utcnow().strftime(MS_GRAPHSECURITYAPI_DT_STR_FORMAT)
         data = json.dumps(data)
 
         # Close alert here
@@ -1116,7 +1116,6 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         Returns:
             :return: status(phantom.APP_SUCCESS/phantom.APP_ERROR), message, cid(container_id)
         """
-        artifacts[-1]["run_automation"] = True
         container = dict()
         container.update({
             "name": key,
