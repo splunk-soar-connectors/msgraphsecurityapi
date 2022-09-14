@@ -1013,12 +1013,9 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         alert_id = param[MS_GRAPHSECURITYAPI_ALERTID]
-        status = MS_GRAPHSECURITYAPI_RESOLVED_STATUS
-        comment = param[MS_GRAPHSECURITYAPI_COMMENT]
+        status = param.get(MS_GRAPHSECURITYAPI_STATUS)
+        comment = param.get(MS_GRAPHSECURITYAPI_COMMENT)
         feedback = param.get(MS_GRAPHSECURITYAPI_FEEDBACK)
-
-        if feedback:
-            data["feedback"] = feedback
 
         endpoint = MS_GRAPHSECURITYAPI_BASE_URL + MS_GRAPHSECURITYAPI_ALERTS_ENDPOINT + "/{}".format(alert_id)
 
@@ -1035,7 +1032,11 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         vendor_info["vendor"] = alert['vendorInformation']['vendor']
 
         data["vendorInformation"] = vendor_info
-        data["comments"] = [comment]
+        if feedback:
+            data["feedback"] = feedback
+        if comment:
+            data["comments"] = [comment]
+
         data["status"] = status
         data["closedDateTime"] = datetime.utcnow().strftime(MS_GRAPHSECURITYAPI_DT_STR_FORMAT)
         data = json.dumps(data)
