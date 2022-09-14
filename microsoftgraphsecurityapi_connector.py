@@ -1282,6 +1282,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         # Ingest the alerts
         for key, vals in providers.items():
+            artifacts = []
             try:
                 self.debug_print("Try to create artifacts for the alerts")
                 # Create artifacts from the alerts
@@ -1297,6 +1298,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
                 self._save_artifacts(artifacts, key=key)
             except Exception as e:
                 self.debug_print("Error occurred while saving artifacts for alerts. Error: {}".format(str(e)))
+                vals = list()
 
             if vals and not self.is_poll_now():
                 last_time_dict = self._state.get('last_time')
