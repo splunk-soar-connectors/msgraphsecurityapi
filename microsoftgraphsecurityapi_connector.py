@@ -611,11 +611,10 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             return ret_val, None
 
         phantom_base_url = resp_json.get('base_url')
-        phantom_base_url = phantom_base_url.rstrip('/')
 
         if not phantom_base_url:
             return action_result.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_BASE_URL_NOT_FOUND_MSG), None
-        return phantom.APP_SUCCESS, phantom_base_url
+        return phantom.APP_SUCCESS, phantom_base_url.rstrip('/')
 
     def _get_app_rest_url(self, action_result):
         """ Get URL for making rest calls.
@@ -793,7 +792,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         time_out = False
         self.save_progress('Waiting for Autorization Code to complete')
         # wait-time while request is being granted
-        for i in range(0, 40):
+        for i in range(40):
             self._state = _load_app_state(self.get_asset_id(), self)
             self.send_progress('{0}'.format('.' * (i % 10)))
             if os.path.isfile(auth_status_file_path):
@@ -838,9 +837,11 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         """
         This action is used to create an iterator that will paginate through responses from called methods.
 
-        :param method_name: Name of method whose response is to be paginated
         :param action_result: Object of ActionResult class
-        :param **kwargs: Dictionary of Input parameters
+        :param endpoint: Endpoint for pagination
+        :param params: Request parameters
+        :param params: Filter string
+        :param limit: limit for number of alerts
         """
 
         list_items = []
@@ -906,7 +907,6 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         :param param: Dictionary of input parameters
         :return: status success/failure
         """
-        endpoint = ''
         filter = ''
         and_for_append = ''
         and_flag = False
@@ -971,8 +971,6 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         :return: status success/failure
         """
 
-        endpoint = ''
-        data = dict()
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
         action_result = self.add_action_result(ActionResult(dict(param)))
@@ -982,19 +980,17 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         comment = param.get(MS_GRAPHSECURITYAPI_COMMENT)
         feedback = param.get(MS_GRAPHSECURITYAPI_FEEDBACK)
 
-        if comment:
-            data["comments"] = [comment]
-
-        if feedback:
-            data["feedback"] = feedback
-
-        endpoint = MS_GRAPHSECURITYAPI_BASE_URL + MS_GRAPHSECURITYAPI_ALERTS_ENDPOINT + "/{}".format(alert_id)
-
+        endpoint = "{}{}/{}".format(MS_GRAPHSECURITYAPI_BASE_URL, MS_GRAPHSECURITYAPI_ALERTS_ENDPOINT, alert_id)
         ret_val, vendor_info = self._get_alert_vendor_info(action_result, endpoint)
 
         if phantom.is_fail(ret_val):
             return ret_val
 
+        data = dict()
+        if comment:
+            data["comments"] = [comment]
+        if feedback:
+            data["feedback"] = feedback
         data["vendorInformation"] = vendor_info
         data["status"] = status
         data = json.dumps(data)
@@ -1029,8 +1025,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         comment = param.get(MS_GRAPHSECURITYAPI_COMMENT)
         feedback = param.get(MS_GRAPHSECURITYAPI_FEEDBACK)
 
-        endpoint = MS_GRAPHSECURITYAPI_BASE_URL + MS_GRAPHSECURITYAPI_ALERTS_ENDPOINT + "/{}".format(alert_id)
-
+        endpoint = "{}{}/{}".format(MS_GRAPHSECURITYAPI_BASE_URL, MS_GRAPHSECURITYAPI_ALERTS_ENDPOINT, alert_id)
         ret_val, vendor_info = self._get_alert_vendor_info(action_result, endpoint)
         if phantom.is_fail(ret_val):
             return ret_val
@@ -1105,7 +1100,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             self.debug_print("Failed to save ingested artifacts, error msg: {}".format(message))
             return ret_val
 
-        return phantom.APP_SUCCESS
+        return ret_val
 
     def _save_ingested(self, artifacts, key):
         """Create new container with given key(name) and save the artifacts.
