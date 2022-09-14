@@ -1000,6 +1000,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_UPDATE_ALERT_FAILED_MSG)
 
+        time.sleep(MS_GRAPHSECURITYAPI_HALF_SEC_WAIT_BW_APIS)
+
         # Get alert after updation
         ret_val, alert = self._update_request(action_result, endpoint)
         if phantom.is_fail(ret_val):
@@ -1046,6 +1048,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         ret_val, alert = self._update_request(action_result, endpoint, data=data, method="patch")
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_CLOSE_ALERT_FAILED_MSG)
+
+        time.sleep(MS_GRAPHSECURITYAPI_HALF_SEC_WAIT_BW_APIS)
 
         # Get alert after updation
         ret_val, alert = self._update_request(action_result, endpoint)
