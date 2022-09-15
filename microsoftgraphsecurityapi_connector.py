@@ -19,6 +19,7 @@ import json
 import os
 import pwd
 import time
+import traceback
 from datetime import datetime
 from urllib.parse import urlencode
 
@@ -85,8 +86,8 @@ def _load_app_state(asset_id, app_connector=None):
             state = json.loads(state_file_data)
     except Exception as e:
         if app_connector:
-            error_txt = _get_error_message_from_exception(e)
-            app_connector.debug_print('In _load_app_state: {0}'.format(error_txt))
+            error_txt = _get_error_message_from_exception(e, app_connector)
+            app_connector.error_print('In _load_app_state: {0}'.format(error_txt))
 
     if app_connector:
         app_connector.debug_print('Loaded state: ', state)
@@ -95,7 +96,7 @@ def _load_app_state(asset_id, app_connector=None):
         state = _decrypt_state(state, asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_DECRYPTION_ERROR, str(e)))
+            app_connector.error_print(MS_GRAPHSECURITYAPI_DECRYPTION_ERROR, e)
         state = {}
 
     return state
@@ -129,7 +130,7 @@ def _save_app_state(state, asset_id, app_connector):
         state = _encrypt_state(state, asset_id)
     except Exception as e:
         if app_connector:
-            app_connector.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_ENCRYPTION_ERROR, str(e)))
+            app_connector.error_print(MS_GRAPHSECURITYAPI_ENCRYPTION_ERROR, e)
         return phantom.APP_ERROR
 
     if app_connector:
@@ -139,17 +140,17 @@ def _save_app_state(state, asset_id, app_connector):
         with open(real_state_file_path, 'w+') as state_file_obj:
             state_file_obj.write(json.dumps(state))
     except Exception as e:
-        error_txt = _get_error_message_from_exception(e)
+        error_txt = _get_error_message_from_exception(e, app_connector)
         msg = 'Unable to save state file: {0}'.format(str(error_txt))
         if app_connector:
-            app_connector.debug_print(msg)
+            app_connector.error_print(msg)
         print(msg)
         return phantom.APP_ERROR
 
     return phantom.APP_SUCCESS
 
 
-def _get_error_message_from_exception(e):
+def _get_error_message_from_exception(e, app_connector=None):
     """
     Get appropriate error message from the exception.
     :param e: Exception object
@@ -157,6 +158,9 @@ def _get_error_message_from_exception(e):
     """
     error_code = None
     error_msg = MS_GRAPHSECURITYAPI_ERROR_MSG_UNKNOWN
+
+    if app_connector:
+        app_connector.error_print("Traceback: {}".format(traceback.format_stack()))
 
     try:
         if hasattr(e, "args"):
@@ -344,7 +348,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         try:
             state = _decrypt_state(state, self.get_asset_id())
         except Exception as e:
-            self.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_DECRYPTION_ERROR, str(e)))
+            self.error_print(MS_GRAPHSECURITYAPI_DECRYPTION_ERROR, e)
             state = None
 
         return state
@@ -420,7 +424,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         try:
             resp_json = response.json()
         except Exception as e:
-            error_txt = _get_error_message_from_exception(e)
+            error_txt = _get_error_message_from_exception(e, self)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".
                                                    format(error_txt)), None)
 
@@ -569,7 +573,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             timeout = MS_GRAPHSECURITYAPI_DEFAULT_REQUEST_TIMEOUT
             r = request_func(endpoint, data=data, headers=headers, verify=verify, params=params, timeout=timeout)
         except Exception as e:
-            error_txt = _get_error_message_from_exception(e)
+            error_txt = _get_error_message_from_exception(e, self)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}"
                                                    .format(error_txt)), resp_json)
         return self._process_response(r, action_result)
@@ -1194,7 +1198,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
                 msg = MS_GRAPHSECURITYAPI_GREATER_EQUAL_TIME_ERROR.format(MS_GRAPHSECURITYAPI_CONFIG_TIME_POLL_NOW)
                 return action_result.set_status(phantom.APP_ERROR, msg)
         except Exception as e:
-            message = "Invalid date string received. Error occurred while checking date format. Error: {}".format(str(e))
+            err_txt = _get_error_message_from_exception(e, self)
+            message = "Invalid date string received. Error occurred while checking date format. Error: {}".format(err_txt)
             return action_result.set_status(phantom.APP_ERROR, message)
         return phantom.APP_SUCCESS
 
@@ -1287,7 +1292,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
                 # Create artifacts from the alerts
                 artifacts = self._create_alert_artifacts(vals)
             except Exception as e:
-                self.debug_print("Error occurred while creating artifacts for alerts. Error: {}".format(str(e)))
+                self.error_print("Error occurred while creating artifacts for alerts. Error: ", e)
                 # Make alerts as empty list
                 vals = list()
 
@@ -1296,7 +1301,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
                 self.debug_print("Try to ingest artifacts for the alerts")
                 self._save_artifacts(artifacts, key=key)
             except Exception as e:
-                self.debug_print("Error occurred while saving artifacts for alerts. Error: {}".format(str(e)))
+                self.error_print("Error occurred while saving artifacts for alerts. Error: ", e)
                 vals = list()
 
             if vals and not self.is_poll_now():
@@ -1360,7 +1365,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         self._access_token = self._state.get(MS_GRAPHSECURITYAPI_JSON_TOKEN, {}).get(MS_GRAPHSECURITYAPI_JSON_ACCESS_TOKEN)
         self._refresh_token = self._state.get(MS_GRAPHSECURITYAPI_JSON_TOKEN, {}).get(MS_GRAPHSECURITYAPI_JSON_REFRESH_TOKEN)
         self._max_artifacts = None
-        # self.set_validator('ipv6', self._is_ip)
+        self.set_validator('ipv6', self._is_ip)
 
         return phantom.APP_SUCCESS
 
