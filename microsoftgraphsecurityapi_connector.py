@@ -533,6 +533,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         # If token is expired, generate new token
         if MS_GRAPHSECURITYAPI_TOKEN_EXPIRED_MSG in action_result.get_message():
+            self.debug_print("Generating new access token")
             status = self._generate_new_access_token(action_result=action_result, data=token_data)
 
             if phantom.is_fail(status):
