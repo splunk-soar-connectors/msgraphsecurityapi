@@ -590,7 +590,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         rest_endpoint = MS_GRAPHSECURITYAPI_ASSET_INFO_URL.format(asset_id=asset_id)
         base_url = self.get_phantom_base_url()
         url = '{}{}{}'.format(base_url if base_url.endswith('/') else base_url + '/', 'rest', rest_endpoint)
-        ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)
+        ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)  # nosemgrep
 
         if phantom.is_fail(ret_val):
             return ret_val, None
@@ -611,7 +611,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         base_url = self.get_phantom_base_url()
         url = '{}{}{}'.format(base_url if base_url.endswith('/') else base_url + '/', 'rest', MS_GRAPHSECURITYAPI_SYS_INFO_URL)
-        ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)
+        ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=url, verify=False)  # nosemgrep
         if phantom.is_fail(ret_val):
             return ret_val, None
 
@@ -1415,7 +1415,7 @@ if __name__ == '__main__':
         try:
             print("Accessing the Login page")
             timeout = MS_GRAPHSECURITYAPI_DEFAULT_REQUEST_TIMEOUT
-            r = requests.get(BaseConnector._get_phantom_base_url() + "login", verify=False, timeout=timeout)
+            r = requests.get(BaseConnector._get_phantom_base_url() + "login", timeout=timeout)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -1428,7 +1428,7 @@ if __name__ == '__main__':
             headers['Referer'] = BaseConnector._get_phantom_base_url() + 'login'
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(BaseConnector._get_phantom_base_url() + "login", verify=False, data=data, headers=headers, timeout=timeout)
+            r2 = requests.post(BaseConnector._get_phantom_base_url() + "login", data=data, headers=headers, timeout=timeout)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: {}".format(str(e)))
