@@ -141,7 +141,7 @@ def _save_app_state(state, asset_id, app_connector):
             state_file_obj.write(json.dumps(state))
     except Exception as e:
         error_txt = _get_error_message_from_exception(e, app_connector)
-        msg = 'Unable to save state file: {0}'.format(str(error_txt))
+        msg = 'Unable to save state file: {0}'.format(error_txt)
         if app_connector:
             app_connector.error_print(msg)
         print(msg)
@@ -170,7 +170,8 @@ def _get_error_message_from_exception(e, app_connector=None):
             elif len(e.args) == 1:
                 error_msg = e.args[0]
     except Exception:
-        pass
+        if app_connector:
+            app_connector.error_print("Exception occurred while getting error code and meesage")
 
     if not error_code:
         error_text = "Error Message: {}".format(error_msg)
@@ -363,7 +364,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         try:
             state = _encrypt_state(state, self.get_asset_id())
         except Exception as e:
-            self.debug_print("{}: {}".format(MS_GRAPHSECURITYAPI_ENCRYPTION_ERROR, str(e)))
+            self.error_print(MS_GRAPHSECURITYAPI_ENCRYPTION_ERROR, e)
             return phantom.APP_ERROR
 
         return super().save_state(state)
@@ -376,11 +377,11 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         :return: status phantom.APP_ERROR/phantom.APP_SUCCESS(along with appropriate message)
         """
 
-        if 200 <= response.status_code <= 299:
+        if 200 <= response.status_code <= 399:
             return RetVal(phantom.APP_SUCCESS, {})
 
-        return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"),
-                      None)
+        msg = MS_GRAPHSECURITYAPI_EMPTY_RESP_MSG.format(response.status_code)
+        return RetVal(action_result.set_status(phantom.APP_ERROR, msg), None)
 
     def _process_html_response(self, response, action_result):
         """ This function is used to process html response.
@@ -539,6 +540,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             if phantom.is_fail(status):
                 return action_result.get_status(), None
 
+            action_result.set_status(phantom.APP_SUCCESS)
+
             headers.update({'Authorization': 'Bearer {0}'.format(self._access_token)})
 
             ret_val, resp_json = self._make_rest_call(action_result=action_result, endpoint=endpoint, headers=headers,
@@ -684,8 +687,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         for alert in alerts:
             alert_artifact = {}
             alert_artifact['label'] = 'alert'
-            alert_artifact['name'] = 'alert Artifact'
-            alert_artifact['cef_types'] = {'id': [alert['id']]}
+            alert_artifact['name'] = 'Alert Artifact'
+            alert_artifact['cef_types'] = {'id': [alert.get('id')]}
             alert_artifact['source_data_identifier'] = alert.get('id')
             alert_artifact['data'] = alert
             alert_artifact['cef'] = alert
@@ -831,9 +834,8 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         :return: status (success/failure)
         """
 
-        ip_address_input = input_ip_address
         try:
-            ipaddress.ip_address(str(ip_address_input))
+            ipaddress.ip_address(str(input_ip_address))
         except Exception:
             return False
         return True
@@ -896,13 +898,13 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         ret_val, alert = self._update_request(action_result, endpoint)
         if phantom.is_fail(ret_val):
             message = MS_GRAPHSECURITYAPI_ALERT_FAILED_MSG
-            if str(action_result.get_message()) == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
+            if action_result.get_message() == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
                 message = action_result.get_message()
             return action_result.set_status(phantom.APP_ERROR, status_message=message), None
 
         vendor_info = {}
-        vendor_info["provider"] = alert['vendorInformation']['provider']
-        vendor_info["vendor"] = alert['vendorInformation']['vendor']
+        vendor_info["provider"] = alert.get('vendorInformation', {}).get('provider')
+        vendor_info["vendor"] = alert.get('vendorInformation', {}).get('vendor')
 
         return phantom.APP_SUCCESS, vendor_info
 
@@ -927,12 +929,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             status = self.convert_paramter_to_list(status)
             if len(status) < 1:
                 return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_STATUS_FAILED_MSG)
-            if len(status) > 1:
-                for st in range(len(status) - 1):
-                    filter += "status eq '{}'".format(status[st]) + " or "
-                filter += "status eq '{}'".format(status[st + 1])
-            else:
-                filter += "status eq '{}'".format(status[0])
+            filter = " or ".join(["status eq '{}'".format(st) for st in status])
             and_flag = True
 
         if provider:
@@ -952,7 +949,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         ret_val, alerts = self._paginator(action_result, endpoint, query=filter)
         if phantom.is_fail(ret_val):
             message = MS_GRAPHSECURITYAPI_LIST_ALERTS_FAILED_MSG
-            if str(action_result.get_message()) == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
+            if action_result.get_message() == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
                 message = action_result.get_message()
             return action_result.set_status(phantom.APP_ERROR, status_message=message)
 
@@ -981,7 +978,9 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         alert_id = param[MS_GRAPHSECURITYAPI_ALERTID]
-        status = param[MS_GRAPHSECURITYAPI_STATUS]
+        status = param.get(MS_GRAPHSECURITYAPI_STATUS, "inProgress")
+        if status not in MS_GRAPHSECURITYAPI_VALUE_LIST_OF_STATUSES:
+            return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_INVALID_STATUS_MSG)
         comment = param.get(MS_GRAPHSECURITYAPI_COMMENT)
         feedback = param.get(MS_GRAPHSECURITYAPI_FEEDBACK)
 
@@ -989,7 +988,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         ret_val, vendor_info = self._get_alert_vendor_info(action_result, endpoint)
 
         if phantom.is_fail(ret_val):
-            return ret_val
+            return action_result.get_status()
 
         data = dict()
         if comment:
@@ -1005,7 +1004,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_UPDATE_ALERT_FAILED_MSG)
 
-        time.sleep(MS_GRAPHSECURITYAPI_HALF_SEC_WAIT_BW_APIS)
+        time.sleep(MS_GRAPHSECURITYAPI_QUARTER_SEC_WAIT_BW_APIS)
 
         # Get alert after updation
         ret_val, alert = self._update_request(action_result, endpoint)
@@ -1028,14 +1027,18 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         alert_id = param[MS_GRAPHSECURITYAPI_ALERTID]
-        status = param[MS_GRAPHSECURITYAPI_STATUS]
+
+        status = param.get(MS_GRAPHSECURITYAPI_STATUS, "Resolved")
+        if status not in MS_GRAPHSECURITYAPI_VALUE_LIST_OF_STATUSES:
+            return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_INVALID_STATUS_MSG)
+
         comment = param.get(MS_GRAPHSECURITYAPI_COMMENT)
         feedback = param.get(MS_GRAPHSECURITYAPI_FEEDBACK)
 
         endpoint = "{}{}/{}".format(MS_GRAPHSECURITYAPI_BASE_URL, MS_GRAPHSECURITYAPI_ALERTS_ENDPOINT, alert_id)
         ret_val, vendor_info = self._get_alert_vendor_info(action_result, endpoint)
         if phantom.is_fail(ret_val):
-            return ret_val
+            return action_result.get_status()
 
         data = dict()
         data["vendorInformation"] = vendor_info
@@ -1054,7 +1057,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.set_status(phantom.APP_ERROR, status_message=MS_GRAPHSECURITYAPI_CLOSE_ALERT_FAILED_MSG)
 
-        time.sleep(MS_GRAPHSECURITYAPI_HALF_SEC_WAIT_BW_APIS)
+        time.sleep(MS_GRAPHSECURITYAPI_QUARTER_SEC_WAIT_BW_APIS)
 
         # Get alert after updation
         ret_val, alert = self._update_request(action_result, endpoint)
@@ -1106,8 +1109,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         ret_val, message, _ = self._save_ingested(artifacts, key)
 
         if phantom.is_fail(ret_val):
-            self.debug_print("Failed to save ingested artifacts, error msg: {}".format(message))
-            return ret_val
+            self.error_print("Failed to save ingested artifacts, error msg: {}".format(message))
 
         return ret_val
 
@@ -1251,7 +1253,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         ret_val, res = self._update_request(action_result, endpoint, params=params)
         if phantom.is_fail(ret_val):
             message = "On-poll action failed"
-            if str(action_result.get_message()) == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
+            if action_result.get_message() == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
                 message = action_result.get_message()
             return action_result.set_status(phantom.APP_ERROR, status_message=message)
 
@@ -1279,7 +1281,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             ret_val, alerts = self._paginator(action_result, endpoint, params=params, limit=max_alerts)
             if phantom.is_fail(ret_val):
                 message = "On-poll action failed"
-                if str(action_result.get_message()) == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
+                if action_result.get_message() == MS_GRAPHSECURITYAPI_TOKEN_NOT_AVAILABLE_MSG:
                     message = action_result.get_message()
                 return action_result.set_status(phantom.APP_ERROR, status_message=message)
 
@@ -1287,7 +1289,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
 
         # Ingest the alerts
         for key, vals in providers.items():
-            artifacts = []
+            artifacts = list()
             try:
                 self.debug_print("Try to create artifacts for the alerts")
                 # Create artifacts from the alerts
