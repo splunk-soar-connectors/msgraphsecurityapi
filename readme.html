@@ -41,9 +41,9 @@ Once the app is created, follow the below-mentioned three steps:
 </ul>
 After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for &lt;your_organization_name_as_on_azure_portal&gt;</b> at the bottom of the screen.
 <h2>Splunk SOAR Graph Asset</h2>
-When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application ID</b> of the app created during the app registration on the Azure Portal in the <b>Application ID</b> field and place the client secret generated during the app registration process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
+When creating an asset for the <b>MS Graph for Security API</b> app, place <b>Application ID</b> of the app created during the app registration on the Azure Portal in the <b>Application ID</b> field and place the client secret generated during the app registration process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
 <br><br>
-After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for MS Graph for Office 365 to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in the previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
+After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for MS Graph for Security API to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in the previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
 <br><br>
 <p>
   https://10.1.66.167/rest/handler/microsoftgraphsecurityapi_781c8000-129d-4134-bcfd-41b490c288fe/mgsapi/result
@@ -95,7 +95,7 @@ The app should now be ready to be used.
               <li>
                 <b>Configuration:</b><br>
                 <ul>
-                  <li>start_time_for_poll - Alert which have 'lastModifiedDateTime' grater than this time will be fetched </li>
+                  <li>start_time_for_poll - Alert whose 'lastModifiedDateTime' greater than this time will be fetched </li>
                   <li>max_artifacts - Maximum allowed Artifacts in a single container </li>
                 </ul>
               </li>
@@ -106,8 +106,8 @@ The app should now be ready to be used.
                   The action uses alert's 'lastModifiedDateTime' property as a checkpoint
                   </li>
                   <li>
-                    On every polling cycle the action will fetch single alert from each available provider. After this we will have all the available providers' list. Then using filter parameter it will fetch alerts for each provider individually in 'ascending' order.
-                    To ingest the data; every time new container will be created using this naming convention - 	&#60;Provider name&#62;  &#60;Container creation datetime&#62; and all the alerts of that perticular provider will be saved as artifacts.
+                    On every polling cycle, the action will fetch a single alert from each available provider. After this, we will have all the available providers' list. Then using filter parameter it will fetch alerts for each provider individually in 'ascending' order.
+                    To ingest the data; every time a new container will be created using this naming convention - 	&#60;Provider name&#62; &#60;Container creation datetime&#62; and all the alerts of that particular provider will be saved as artifacts.
                   </li>
 
             </ul>
@@ -122,9 +122,9 @@ The app should now be ready to be used.
                   </ul>
                 </li>
                 <li>
-                After getting list of providers, action will fetch all the alerts whose 'lastModifiedDateTime' is grater than 'start_time_for_poll'.
-                then the containers will be created for individual provider. 'max_artifacts' parameter will be considerd as limit to ingested artifacts in one container.
-                ex:  If value of 'max_artifacts' is 20, there are total 3 providers and 'artifact_count' is 100. The action will create 15 conatiners (5 conatainers for each provider)
+                After getting list of providers, action will fetch all the alerts whose 'lastModifiedDateTime' is greater than 'start_time_for_poll'.
+                then the containers will be created for an individual provider. 'max_artifacts' parameter will be considered as a limit to ingested artifacts in one container.
+                ex:  If value of 'max_artifacts' is 20, there are total 3 providers and 'artifact_count' is 100. The action will create 15 containers (5 containers for each provider)
                 and all the containers will have 20 alerts (artifacts) each.
                 </li>
 
@@ -140,21 +140,21 @@ The app should now be ready to be used.
                 </ul>
               </li>
                 <li>
-                  After getting list of providers, action will fetch all the alerts whose 'lastModifiedDateTime' is grater than 'start_time_for_poll'.
-                  then the containers will be created for individual provider. 'first_run_max_alerts' parameter will be considerd as limit to fetch number of alerts for first call.
+                  After getting list of providers, action will fetch all the alerts whose 'lastModifiedDateTime' is greater than 'start_time_for_poll'.
+                  then the containers will be created for individual provider. 'first_run_max_alerts' parameter will be considered as limit to fetch number of alerts for first call.
                 </li>
                 <li>
-                  After ingestion it will save 'lastModifiedDateTime' of each provider's last alert (artifact) for subsequent calls.
+                  After ingestion, it will save 'lastModifiedDateTime' of each provider's last alert (artifact) for subsequent calls.
                 </li>
                 <li>
-                  Now after first call it will fetch alerts whose 'lastModifiedDateTime' is gretar then saved 'lastModifiedDateTime' of last ingested alert.
+                  Now after first call it will fetch alerts whose 'lastModifiedDateTime' is greater than saved 'lastModifiedDateTime' of last ingested alert.
                 </li>
                 <li>
-                  If the action found new provider after first call action will fetch alerts whose 'lastModifiedDateTime' is gretar than 'start_time_for_poll'. i.e. If there is no saved time found then 'start_time_for_poll' will be considerd as starting point.
+                  If the action found a new provider after the first call action will fetch alerts whose 'lastModifiedDateTime' is greater than 'start_time_for_poll'. i.e. If there is no saved time found then 'start_time_for_poll' will be considered as starting point.
                 </li>
                 <li>
-                Ex:  If value of 'max_artifacts' is 20 ans there are total 3 providers. For all runs the action will create different containers for 20 alerts.
-                so if there are 200 alerts fetched in one of the run for one provider action will create 10 containers for each provider. here we have 3 providers so total 30 containers will be created with 20 alerts each in that perticular run
+                Ex:  If the value of 'max_artifacts' is 20 and there are total 3 providers. For all runs, the action will create different containers for 20 alerts.
+                so if there are 200 alerts fetched in one of the runs for one provider action will create 10 containers for each provider. here we have 3 providers so total 30 containers will be created with 20 alerts each in that particular run
                 </li>
             </ul>
         </li>
