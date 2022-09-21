@@ -11,48 +11,151 @@ and limitations under the License.
 -->
 
 <p>
-  <h2>Authentication</h2>
-  This app requires registration of a Microsoft Graph Application. To do so, navigate to the URL <a href="https://portal.azure.com" target="_blank">https://portal.azure.com</a> in a browser and log in with the Microsoft account, then, click <b>App registrations</b>.
-  <br><br>
-  On the next page, select <b>New registration</b> and give your app a name.
-  <br><br>
-  Once the app is created, follow the below three steps:
-  <ul>
-      <li>Under <b>Certificates & secrets</b> select <b>New client secret</b>. Note down this key somewhere secure, as it cannot be retrieved after closing the window.</li>
-      <li>Under <b>Overview</b> select <b>Add a redirect URI</b>. In the <b>Add Platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> field will be filled in the later steps.</li>
-      <li>Under <b>API Permissions</b> the following <b>Delegeted Permission </b>and<b> Application Permission</b> need to be added:
+<h2>Authentication</h2>
+This app requires registration of a Microsoft Graph Application. To do so, navigate to the URL <a
+  href="https://portal.azure.com" target="_blank">https://portal.azure.com</a> in a browser and log in with the
+Microsoft account, then, click <b>App registrations</b>.
+<br><br>
+On the next page, select <b>New registration</b> and give your app a name.
+<br><br>
+Once the app is created, follow the below-mentioned three steps:
+<ul>
+  <li>Under <b>Certificates & secrets</b> select <b>New client secret</b>. Enter the <b>Description</b> and select the desired duration in <b>Expires</b>. Click on <b>Add</b>. Note down this <b>value</b> somewhere secure, as it cannot be retrieved after closing the window.</li>
+  <li>Under <b>Authentication</b>, select <b>Add a platform</b>. In the <b>Add a platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> should be filled right here. We will get <b>Redirect URLs</b> from the Splunk SOAR asset we create below in the section titled <b>Splunk SOAR Graph Asset</b>.</li>
+  <li>Under <b>API Permissions</b> Click on <b>Add a permission</b>.</li>
+    <li>Under the <b>Microsoft API</b> section, select <b>Microsoft Graph</b>.</li>
+    <li>Provide the following Application permissions to the app:</li>
+    <ul>
+      <li>User.Read.All (https://graph.microsoft.com/User.Read.All)</li>
       <ul>
-          <li>User.Read.All (https://graph.microsoft.com/User.Read.All)</li>
-              <ul><li>For non-admin access, use User.Read (Delegated permission) instead (https://graph.microsoft.com/User.Read)</li></ul>
-              <li>
-                SecurityEvents.Read.All (https://graph.microsoft.com/SecurityEvents.Read.All)
-              </li>
-              <li>
-                SecurityEvents.ReadWrite.All (https://graph.microsoft.com/SecurityEvents.ReadWrite.All)
-              </li>
+        <li>For non-admin access, use User.Read (Delegated permission) instead (https://graph.microsoft.com/User.Read)
+        </li>
       </ul>
-  </ul>
-  After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for &lt;your_organization_name_as_on_azure_portal&gt;</b> at the bottom of the screen.
-  <h2>Splunk SOAR Graph Asset</h2>
-  When creating an asset for the <b>MS Graph Security API</b> app, place <b>Application (client) ID</b> of the app created during the app registration on the Azure Portal in the <b>Application (client) ID</b> field and place the client secret generated during the app registration process in the <b>Client Secret</b> field. Then, after filling out the <b>Tenant ID</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
-  <br><br>
-  After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for Microsoft Graph Security API to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in a previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
-  <br><br>
-  <pre>
+      <li>
+        SecurityEvents.Read.All (https://graph.microsoft.com/SecurityEvents.Read.All)
+      </li>
+      <li>
+        SecurityEvents.ReadWrite.All (https://graph.microsoft.com/SecurityEvents.ReadWrite.All)
+      </li>
+    </ul>
+</ul>
+After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for &lt;your_organization_name_as_on_azure_portal&gt;</b> at the bottom of the screen.
+<h2>Splunk SOAR Graph Asset</h2>
+When creating an asset for the <b>MS Graph for Office 365</b> app, place <b>Application ID</b> of the app created during the app registration on the Azure Portal in the <b>Application ID</b> field and place the client secret generated during the app registration process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
+<br><br>
+After saving, a new field will appear in the <b>Asset Settings</b> tab. Take the URL found in the <b>POST incoming for MS Graph for Office 365 to this location</b> field and place it in the <b>Redirect URLs</b> field mentioned in the previous step. To this URL, add <b>/result</b>. After doing so the URL should look something like:
+<br><br>
+<p>
   https://10.1.66.167/rest/handler/microsoftgraphsecurityapi_781c8000-129d-4134-bcfd-41b490c288fe/mgsapi/result
-  </pre>
-  <br>
-  Once again, click save at the bottom of the screen.
-  <br>
-  <h2>User Permissions</h2>
-  To complete the authorization process, this app needs permission to view assets, which is not granted by default. First, under <b>asset settings</b>, check which user has listed under <b>Select a user on behalf of which automated actions can be executed</b>. By default, the user will be <b>automation</b>, but this user can be changed by clicking <b>EDIT</b> at the bottom of the window. To give this user permission to view assets, follow these steps:
-  <ul>
-      <li>In the main drop-down menu, select <b>Administration</b>, then select the <b>User Management</b>, and under that tab, select <b>Roles</b>. Finally, click <b>+ ROLE</b>.</li>
-      <li>In the <b>Add Role</b> wizard, give the role a name (e.g <b>Asset Viewer</b>), and provide a description. Subsequently, under <b>Available Users</b>, add the user assigned to the asset viewed earlier. Then click the <b>Permissions</b> tab.</li>
-      <li>On the permission tab, under <b>Available Privileges</b>, give the role the <b>View Assets</b> privilege. Then click <b>SAVE</b>.</li>
-  </ul>
-  <h3>Test connectivity</h3>
-  After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button. A window should pop up and display a URL. Navigate to this URL in a separate browser tab. This new tab will redirect to a Microsoft login page. Log in to a Microsoft account with administrator privileges to the desired mailboxes. After logging in, review the requested permissions listed, then click <b>Accept</b>. Finally, close that tab. The test connectivity window should show success.
-  <br><br>
-  The app should now be ready to be used.
-  <br />
+  </p>
+<br>
+Once again, click save at the bottom of the screen.
+<br>
+<br><br>
+Additionally, updating the Base URL in the Company Settings is also required. Navigate to <b>Administration > Company Settings > Info</b> to configure the <b>Base URL For Splunk SOAR</b>. Then, select <b>Save Changes</b>.
+<br><br>
+
+<h2>User Permissions</h2>
+To complete the authorization process, this app needs permission to view assets, which is not granted by default. First, navigate to <b>Asset Settings > Advanced</b>, to check which user is listed under <b>Select a user on behalf of which automated actions can be executed</b>. By default, the user will be <b>automation</b>, but this user can be changed by clicking <b>EDIT</b> at the bottom of the window. To give this user permission to view assets, follow these steps:
+<ul>
+    <li>In the main drop-down menu, select <b>Administration</b>, then select the <b>User Management</b>, and under that tab, select <b>Roles & Permissions</b>. Finally, click <b>+ ROLE</b>.</li>
+    <li>In the <b>Add Role</b> wizard, give the role a name (e.g <b>Asset Viewer</b>), and provide a description. Subsequently, under the <b>Users tab</b>, click <b>ADD USERS</b> to add the user assigned to the asset viewed earlier. Then click the <b>Permissions</b> tab.</li>
+    <li>In the permission tab, under <b>Basic Permissions</b>, give the role the <b>View Assets</b> privilege. Then click <b>SAVE</b>.</li>
+</ul>
+
+<h3>Test connectivity</h3>
+After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button. A window should pop up and display a
+URL. Navigate to this URL in a separate browser tab. This new tab will redirect to a Microsoft login page. Log in to a
+Microsoft account with administrator privileges to the desired mailboxes. After logging in, review the requested
+permissions listed, then click <b>Accept</b>. Finally, close that tab. The test connectivity window should show success.
+<br><br>
+The app should now be ready to be used.
+<br />
+
+<h2>State file permissions</h2>
+  <p>
+    Please check the permissions for the state file as mentioned below.
+    <h4>State file path</h4>
+    <ul>
+      <li>For Non-NRI instance: /opt/phantom/local_data/app_states/&lt;appid&gt;/&lt;asset_id&gt;_state.json</li>
+      <li>For NRI instance: /&lt;PHANTOM_HOME_DIRECTORY&gt;/local_data/app_states/&lt;appid&gt;/&lt;asset_id&gt;_state.json</li>
+    </ul>
+    <h4>State file permissions</h4>
+    <ul>
+      <li>File rights: rw-rw-r-- (664) (The Splunk SOAR user should have read and write access for the state file)</li>
+      <li>File owner: Appropriate Splunk SOAR user</li>
+    </ul>
+  </p>
+
+  <h2>On Poll</h2>
+    <ul>
+
+        <li>Common points for both manual and scheduled interval polling
+            <ul>
+              <li>
+                <b>Configuration:</b><br>
+                <ul>
+                  <li>start_time_for_poll - Alert which have 'lastModifiedDateTime' grater than this time will be fetched </li>
+                  <li>max_artifacts - Maximum allowed Artifacts in a single container </li>
+                </ul>
+              </li>
+               <li>
+                Apart from artifact_count other default parameters of the On Poll action are ignored in the app. i.e. start_time, end_time, container_id, container_count
+                </li>
+                <li>
+                  The action uses alert's 'lastModifiedDateTime' property as a checkpoint
+                  </li>
+                  <li>
+                    On every polling cycle the action will fetch single alert from each available provider. After this we will have all the available providers' list. Then using filter parameter it will fetch alerts for each provider individually in 'ascending' order.
+                    To ingest the data; every time new container will be created using this naming convention - 	&#60;Provider name&#62;  &#60;Container creation datetime&#62; and all the alerts of that perticular provider will be saved as artifacts.
+                  </li>
+
+            </ul>
+        </li>
+
+        <li>Manual Polling
+            <ul>
+                <li>
+                  <b>Configuration:</b><br>
+                  <ul>
+                    <li>artifact_count - Limit for number of alerts to ingest for each individual provider</li>
+                  </ul>
+                </li>
+                <li>
+                After getting list of providers, action will fetch all the alerts whose 'lastModifiedDateTime' is grater than 'start_time_for_poll'.
+                then the containers will be created for individual provider. 'max_artifacts' parameter will be considerd as limit to ingested artifacts in one container.
+                ex:  If value of 'max_artifacts' is 20, there are total 3 providers and 'artifact_count' is 100. The action will create 15 conatiners (5 conatainers for each provider)
+                and all the containers will have 20 alerts (artifacts) each.
+                </li>
+
+            </ul>
+        </li>
+
+        <li>Scheduled | Interval Polling
+            <ul>
+              <li>
+                <b>Configuration:</b><br>
+                <ul>
+                  <li>first_run_max_alerts - Maximum Alerts for each provider in scheduled polling first time</li>
+                </ul>
+              </li>
+                <li>
+                  After getting list of providers, action will fetch all the alerts whose 'lastModifiedDateTime' is grater than 'start_time_for_poll'.
+                  then the containers will be created for individual provider. 'first_run_max_alerts' parameter will be considerd as limit to fetch number of alerts for first call.
+                </li>
+                <li>
+                  After ingestion it will save 'lastModifiedDateTime' of each provider's last alert (artifact) for subsequent calls.
+                </li>
+                <li>
+                  Now after first call it will fetch alerts whose 'lastModifiedDateTime' is gretar then saved 'lastModifiedDateTime' of last ingested alert.
+                </li>
+                <li>
+                  If the action found new provider after first call action will fetch alerts whose 'lastModifiedDateTime' is gretar than 'start_time_for_poll'. i.e. If there is no saved time found then 'start_time_for_poll' will be considerd as starting point.
+                </li>
+                <li>
+                Ex:  If value of 'max_artifacts' is 20 ans there are total 3 providers. For all runs the action will create different containers for 20 alerts.
+                so if there are 200 alerts fetched in one of the run for one provider action will create 10 containers for each provider. here we have 3 providers so total 30 containers will be created with 20 alerts each in that perticular run
+                </li>
+            </ul>
+        </li>
+   </ul>
