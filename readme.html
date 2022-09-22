@@ -11,34 +11,53 @@ and limitations under the License.
 -->
 
 <p>
-<h2>Authentication</h2>
-This app requires registration of a Microsoft Graph Application. To do so, navigate to the URL <a
-  href="https://portal.azure.com" target="_blank">https://portal.azure.com</a> in a browser and log in with the
-Microsoft account, then, click <b>App registrations</b>.
-<br><br>
-On the next page, select <b>New registration</b> and give your app a name.
-<br><br>
-Once the app is created, follow the below-mentioned three steps:
-<ul>
-  <li>Under <b>Certificates & secrets</b> select <b>New client secret</b>. Enter the <b>Description</b> and select the desired duration in <b>Expires</b>. Click on <b>Add</b>. Note down this <b>value</b> somewhere secure, as it cannot be retrieved after closing the window.</li>
-  <li>Under <b>Authentication</b>, select <b>Add a platform</b>. In the <b>Add a platform</b> window, select <b>Web</b>. The <b>Redirect URLs</b> should be filled right here. We will get <b>Redirect URLs</b> from the Splunk SOAR asset we create below in the section titled <b>Splunk SOAR Graph Asset</b>.</li>
-  <li>Under <b>API Permissions</b> Click on <b>Add a permission</b>.</li>
-    <li>Under the <b>Microsoft API</b> section, select <b>Microsoft Graph</b>.</li>
-    <li>Provide the following Application permissions to the app:</li>
-    <ul>
-      <li>User.Read.All (https://graph.microsoft.com/User.Read.All)</li>
+<h2>Configure and set up permissions of the app created on the Microsoft Azure portal</h2>
+<p>
+  <ul>
+    <h4>Create the app</h4>
+    <ol>
+    <li>Navigate to <a href="https://portal.azure.com" target="_blank">https://portal.azure.com</a>.</li>
+    <li>Select the 'App registrations'.</li>
+    <li>Select the 'New Registration' option at the top of the page.</li>
+    <li>In the registration form, choose a name for your application and then click 'Register'.</li>
+    </ol>
+    <h4>Add permissions</h4>
+    <ol start=7>
+    <li>Select the 'API Permissions' menu from the left-side panel.</li>
+    <li>Click on 'Add a permission'.</li>
+    <li>Search for 'Microsoft Graph' keyword in the search box and click on the displayed option for it.</li>
+    <li>Provide the following Delegated and Application permissions to the app.
       <ul>
-        <li>For non-admin access, use User.Read (Delegated permission) instead (https://graph.microsoft.com/User.Read)
+        <li>User.Read.All (https://graph.microsoft.com/User.Read.All)</li>
+        <ul>
+          <li>For non-admin access, use User.Read (Delegated permission) instead (https://graph.microsoft.com/User.Read)
+          </li>
+        </ul>
+        <li>
+          SecurityEvents.Read.All (https://graph.microsoft.com/SecurityEvents.Read.All)
+        </li>
+        <li>
+          SecurityEvents.ReadWrite.All (https://graph.microsoft.com/SecurityEvents.ReadWrite.All)
         </li>
       </ul>
-      <li>
-        SecurityEvents.Read.All (https://graph.microsoft.com/SecurityEvents.Read.All)
-      </li>
-      <li>
-        SecurityEvents.ReadWrite.All (https://graph.microsoft.com/SecurityEvents.ReadWrite.All)
-      </li>
-    </ul>
-</ul>
+    </li>
+    <li>select <b>Grant admin consent for &lt;your_organization_name_as_on_azure_portal&gt;</b> at the bottom of the screen.</li>
+    </ol>
+    <h4>Create a client secret</h4>
+    <ol start=17>
+    <li>Select the 'Certificates &amp; secrets' menu from the left-side panel.</li>
+    <li>Select 'New client secret' button to open a pop-up window.</li>
+    <li>Provide the description, select an appropriate option for deciding the client secret expiration time, and click on the 'Add' button.</li>
+    <li>Click 'Copy to clipboard' to copy the generated secret value and paste it in a safe place. You will need it to configure the asset and will not be able to retrieve it later.</li>
+    </ol>
+    <h4>Copy your application id and tenant id</h4>
+    <ol start=21>
+    <li>Select the 'Overview' menu from the left-side panel.</li>
+    <li>Copy the <b>Application (client) ID</b> and <b>Directory (tenant) ID</b>. You will need these to configure the SOAR asset.
+    </ol>
+  </ul>
+</p>
+
 After making these changes, click <b>Add permissions</b>, then select <b>Grant admin consent for &lt;your_organization_name_as_on_azure_portal&gt;</b> at the bottom of the screen.
 <h2>Splunk SOAR Graph Asset</h2>
 When creating an asset for the <b>MS Graph for Security API</b> app, place <b>Application ID</b> of the app created during the app registration on the Azure Portal in the <b>Application ID</b> field and place the client secret generated during the app registration process in the <b>Application Secret</b> field. Then, after filling out the <b>Tenant</b> field, click <b>SAVE</b>. Both the Application/Client ID and the Tenant ID can be found in the <b>Overview</b> tab on your app's Azure page.
@@ -63,12 +82,14 @@ To complete the authorization process, this app needs permission to view assets,
     <li>In the permission tab, under <b>Basic Permissions</b>, give the role the <b>View Assets</b> privilege. Then click <b>SAVE</b>.</li>
 </ul>
 
-<h3>Test connectivity</h3>
-After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button. A window should pop up and display a
-URL. Navigate to this URL in a separate browser tab. This new tab will redirect to a Microsoft login page. Log in to a
-Microsoft account with administrator privileges to the desired mailboxes. After logging in, review the requested
-permissions listed, then click <b>Accept</b>. Finally, close that tab. The test connectivity window should show success.
-<br><br>
+<h3>Method to run Test Connectivity</h3><ul>
+<li>After setting up the asset and user, click the <b>TEST CONNECTIVITY</b> button. A window should pop up and display a
+URL. </li>
+<li>Navigate to this URL in a separate browser tab. This new tab will redirect to a Microsoft login page.</li>
+<li>Log in to a Microsoft account with administrator privileges to the desired mailboxes. After logging in, review the requested
+  permissions listed, then click <b>Accept</b>. Finally, close that tab.</li>
+<li>test connectivity window should show success.</li>
+</ul>
 The app should now be ready to be used.
 <br />
 
@@ -86,8 +107,19 @@ The app should now be ready to be used.
       <li>File owner: Appropriate Splunk SOAR user</li>
     </ul>
   </p>
+  <h2>Explanation of Close alert action</h2>
+  <li>
+    <b>Configuration:</b><br>
+    <ul>
+      <li>Status - It allows a user to define what status "Closed" means.  Default is "resolved" </li>
+    </ul>
+    <li>
+      This action will update the alert's 'closedDateTime' parameter to the current system datetime
+    </li>
+  </li>
 
-  <h2>On Poll</h2>
+
+  <h2>Explanation of On-Poll Workflow</h2>
     <ul>
 
         <li>Common points for both manual and scheduled interval polling
