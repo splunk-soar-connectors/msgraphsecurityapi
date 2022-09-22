@@ -19,7 +19,6 @@ import json
 import os
 import pwd
 import time
-import traceback
 from datetime import datetime
 from urllib.parse import urlencode
 
@@ -160,7 +159,7 @@ def _get_error_message_from_exception(e, app_connector=None):
     error_msg = MS_GRAPHSECURITYAPI_ERROR_MSG_UNKNOWN
 
     if app_connector:
-        app_connector.error_print("Traceback: {}".format(traceback.format_stack()))
+        app_connector.error_print("Traceback: ", e)
 
     try:
         if hasattr(e, "args"):
