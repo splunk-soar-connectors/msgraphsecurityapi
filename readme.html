@@ -96,7 +96,7 @@ The app should now be ready to be used.
                 <b>Configuration:</b><br>
                 <ul>
                   <li>start_time_for_poll - Alert whose 'lastModifiedDateTime' greater than this time will be fetched </li>
-                  <li>max_artifacts - Maximum allowed Artifacts in a single container </li>
+                  <li>max_artifacts - Maximum allowed Artifacts in a single container (Default: 500)</li>
                 </ul>
               </li>
                <li>
@@ -124,8 +124,7 @@ The app should now be ready to be used.
                 <li>
                 After getting list of providers, action will fetch all the alerts whose 'lastModifiedDateTime' is greater than 'start_time_for_poll'.
                 then the containers will be created for an individual provider. 'max_artifacts' parameter will be considered as a limit to ingested artifacts in one container.
-                ex:  If value of 'max_artifacts' is 20, there are total 3 providers and 'artifact_count' is 100. The action will create 15 containers (5 containers for each provider)
-                and all the containers will have 20 alerts (artifacts) each.
+                For example if value of 'max_artifacts' is 20, there are total 3 providers and 'artifact_count' is 100. The action will fetch 100 alerts for each provider and create 15 containers (5 containers for each provider) so, all the containers will have 20 alerts (artifacts) each.
                 </li>
 
             </ul>
@@ -136,7 +135,7 @@ The app should now be ready to be used.
               <li>
                 <b>Configuration:</b><br>
                 <ul>
-                  <li>first_run_max_alerts - Maximum Alerts for each provider in scheduled polling first time</li>
+                  <li>first_run_max_alerts - Maximum Alerts for each provider in scheduled polling first time (Default: 1000)</li>
                 </ul>
               </li>
                 <li>
@@ -153,8 +152,8 @@ The app should now be ready to be used.
                   If the action found a new provider after the first call action will fetch alerts whose 'lastModifiedDateTime' is greater than 'start_time_for_poll'. i.e. If there is no saved time found then 'start_time_for_poll' will be considered as starting point.
                 </li>
                 <li>
-                Ex:  If the value of 'max_artifacts' is 20 and there are total 3 providers. For all runs, the action will create different containers for 20 alerts.
-                so if there are 200 alerts fetched in one of the runs for one provider action will create 10 containers for each provider. here we have 3 providers so total 30 containers will be created with 20 alerts each in that particular run
+                For example,  If the value of 'max_artifacts' is 20 and there are total 3 providers. For all runs, the action will create different containers for 20 alerts.
+                so if there are 200 alerts fetched in one of the runs for one provider, action will create 10 containers with 20 alerts each for that provider. here we have 3 providers so total 30 containers will be created in that particular run
                 </li>
             </ul>
         </li>
