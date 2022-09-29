@@ -345,6 +345,12 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         :return: loaded state
         """
         state = super().load_state()
+        if not isinstance(state, dict):
+            self.debug_print("Reseting the state file with the default format")
+            state = {
+                "app_version": self.get_app_json().get('app_version')
+            }
+            return state
         try:
             state = _decrypt_state(state, self.get_asset_id())
         except Exception as e:
@@ -1191,7 +1197,7 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
             # Taking current UTC time as end time
             end_time = datetime.utcnow()
             # Check for given time is not before 1970-01-01T00:00:00Z
-            ret_val = self._check_invalid_since_utc_time(action_result, time)
+            ret_val = self._check_invalid_since_utc_time(time)
             if phantom.is_fail(ret_val):
                 return action_result.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_UTC_SINCE_TIME_ERROR)
 
@@ -1351,12 +1357,6 @@ class MicrosoftSecurityAPIConnector(BaseConnector):
         """
 
         self._state = self.load_state()
-        if not isinstance(self._state, dict):
-            self.debug_print("Reseting the state file with the default format")
-            self._state = {
-                "app_version": self.get_app_json().get('app_version')
-            }
-            return self.set_status(phantom.APP_ERROR, MS_GRAPHSECURITYAPI_STATE_FILE_CORRUPT_ERROR)
 
         # get the asset config
         config = self.get_config()
